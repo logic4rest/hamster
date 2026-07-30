@@ -1,11 +1,11 @@
 """
 티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (roboidai 방식 + 바운딩 박스 오버레이)
 =============================================================================
-- 무색 페트병 / 플라스틱 → 파란 LED (연속 8프레임 확정 + Beep)
-- 캔                   → 초록 LED (연속 8프레임 확정 + Beep)
-- 종이                 → 노란 LED (연속 8프레임 확정 + Beep)
-- 병 (유리병)          → 빨간 LED (연속 8프레임 확정 + Beep)
-- 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 8프레임 확정 + Beep)
+- 무색 페트병 / 플라스틱 → 파란 LED (연속 2프레임 확정 + Beep)
+- 캔                   → 초록 LED (연속 2프레임 확정 + Beep)
+- 종이                 → 노란 LED (연속 2프레임 확정 + Beep)
+- 병 (유리병)          → 빨간 LED (연속 2프레임 확정 + Beep)
+- 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 2프레임 확정 + Beep)
 - 없음 / 신뢰도 < 0.8   → 대기 (LED OFF)
 
 실행 방법:
@@ -25,7 +25,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 MODEL_DIR    = str(PROJECT_ROOT / "models")
 
 CONFIDENCE_THRESHOLD = 0.8   # 이 값 미만이면 폐기/대기 (없음 처리)
-REQUIRED_FRAMES      = 8     # 연속 8프레임 동일 시 최종 확정
+REQUIRED_FRAMES      = 2     # 연속 2프레임 동일 시 최종 확정
 COUNTDOWN_SEC        = 2     # 시작 전 카운트다운 초
 
 # ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ CATEGORY_MAP = {
     "없음": "없음",
 }
 
-# 햄스터 로봇 LED 색상 매핑 (소문자 표기 적용)
+# 햄스터 로봇 LED 색상 매핑
 LED_MAP = {
     "플라스틱/페트병": ("blue", "blue"),
     "캔": ("green", "green"),
@@ -82,7 +82,7 @@ def draw_bbox(frame, category, conf, count, max_count):
     cv2.line(frame, (x2, y1), (x2, y1 + c_len), color, thickness + 2)
     # Bottom-Left
     cv2.line(frame, (x1, y2), (x1 + c_len, y2), color, thickness + 2)
-    cv2.line(frame, (x1, y2), (x1, y2 + c_len), color, thickness + 2)
+    cv2.line(frame, (x1, y2), (x1, y1 + c_len), color, thickness + 2)
     # Bottom-Right
     cv2.line(frame, (x2, y2), (x2 - c_len, y2), color, thickness + 2)
     cv2.line(frame, (x2, y2), (x2, y2 - c_len), color, thickness + 2)
@@ -123,7 +123,7 @@ def main():
     print("  - 종이                  -> 노란 LED (yellow)")
     print("  - 병(유리병)            -> 빨간 LED (red)")
     print("  - 종이팩                -> 하늘색 LED (cyan)")
-    print("  - 연속 8프레임 감지 시 배출 안내 확정")
+    print("  - 연속 2프레임 감지 시 배출 안내 확정")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 60 + "\n")
 
@@ -157,13 +157,12 @@ def main():
                     print(f"\n[★ 확정 ★] 배출 안내: {mapped_category} (연속 {REQUIRED_FRAMES}프레임 감지!)")
                     left_led, right_led = LED_MAP.get(mapped_category, ("off", "off"))
 
-                    # 로봇 알림: 삐 소리 + LED 켜기 (소문자 'blue', 'cyan', 'red', 'green', 'yellow' 지정)
+                    # 로봇 알림: 삐 소리 + LED 켜기
                     hamster.beep()
                     hamster.leds(left_led, right_led)
 
                     start_time = time.time()
                     while time.time() - start_time < 2.0:
-                        # 2초 동안 계속해서 지정된 LED 상태 유지
                         hamster.leds(left_led, right_led)
                         image = cam.read()
                         draw_bbox(image, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES)
