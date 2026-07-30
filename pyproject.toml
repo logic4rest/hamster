@@ -1,7 +1,21 @@
 [project]
 name = "hamster"
 version = "0.1.0"
-description = "Add your description here"
+description = "티처블 머신 손모양 인식으로 햄스터 봇을 조종하는 프로그램"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "roboid",
+    "roboidai",
+    "mediapipe",
+    "opencv-python",
+]
+
+[project.scripts]
+hamster = "hamster.__main__:main"
+
+[tool.uv]
+package = true
+
+[tool.setuptools.packages.find]
+include = ["hamster*"]
