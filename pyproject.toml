@@ -9,6 +9,7 @@ dependencies = [
     "roboidai",
     "mediapipe",
     "opencv-python",
+    "keyboard",
 ]
 
 [project.scripts]
