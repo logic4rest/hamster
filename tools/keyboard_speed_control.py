@@ -19,8 +19,8 @@ Shift 키로 속도를 올리고, Ctrl 키로 속도를 줄일 수 있습니다.
     pip install keyboard roboid
 
 실행 방법:
-    python tools/keyboard_control.py
-    uv run python tools/keyboard_control.py
+    python tools/keyboard_speed_control.py
+    uv run python tools/keyboard_speed_control.py
 """
 
 import sys

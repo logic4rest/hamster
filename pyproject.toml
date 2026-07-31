@@ -10,6 +10,7 @@ dependencies = [
     "mediapipe",
     "opencv-python",
     "keyboard",
+    "pygame>=2.6.1",
 ]
 
 [project.scripts]

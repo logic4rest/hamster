@@ -20,10 +20,10 @@ CYAN   = "\033[96m"
 BOLD   = "\033[1m"
 RESET  = "\033[0m"
 
-def ok(msg: str):    print(f"  {GREEN}✔  {msg}{RESET}")
-def fail(msg: str):  print(f"  {RED}✘  {msg}{RESET}")
-def info(msg: str):  print(f"  {CYAN}→  {msg}{RESET}")
-def warn(msg: str):  print(f"  {YELLOW}⚠  {msg}{RESET}")
+def ok(msg: str):    print(f"  {GREEN}[OK]  {msg}{RESET}")
+def fail(msg: str):  print(f"  {RED}[FAIL]  {msg}{RESET}")
+def info(msg: str):  print(f"  {CYAN}[INFO]  {msg}{RESET}")
+def warn(msg: str):  print(f"  {YELLOW}[WARN]  {msg}{RESET}")
 def step(n: int, msg: str):
     print(f"\n{BOLD}[{n}/5] {msg}{RESET}")
 
@@ -50,8 +50,6 @@ def main():
     info("연결 중... (최대 10초 소요)")
     try:
         hamster = Hamster()
-        # 연결되면 roboid 내부에서 자동으로 페어링됨
-        # 잠깐 대기해서 안정화
         time.sleep(2)
         ok("햄스터 연결 성공!")
     except Exception as e:
@@ -81,7 +79,7 @@ def main():
         time.sleep(0.6)
 
         hamster.leds("OFF", "OFF")
-        ok("LED 점검 완료 — 빨강/파랑/초록 순서로 점등되었나요?")
+        ok("LED 점검 완료 - 빨강/파랑/초록 순서로 점등되었나요?")
     except Exception as e:
         fail(f"LED 점검 실패: {e}")
         all_passed = False
@@ -92,7 +90,7 @@ def main():
         info("삐~ 소리가 나야 합니다")
         hamster.beep()
         time.sleep(1.0)
-        ok("소리 점검 완료 — 소리가 들렸나요?")
+        ok("소리 점검 완료 - 소리가 들렸나요?")
     except Exception as e:
         fail(f"소리 점검 실패: {e}")
         all_passed = False
@@ -126,7 +124,7 @@ def main():
         time.sleep(0.5)
         hamster.stop()
 
-        ok("바퀴 점검 완료 — 전진/후진/좌회전/우회전이 동작했나요?")
+        ok("바퀴 점검 완료 - 전진/후진/좌회전/우회전이 동작했나요?")
     except Exception as e:
         fail(f"바퀴 점검 실패: {e}")
         all_passed = False
@@ -134,9 +132,9 @@ def main():
     # ── 최종 결과 ─────────────────────────────────────────────────────────────
     print(f"\n{BOLD}{'='*50}{RESET}")
     if all_passed:
-        print(f"{GREEN}{BOLD}  ✔  모든 점검 통과! 로봇이 정상입니다.{RESET}")
+        print(f"{GREEN}{BOLD}  [OK]  모든 점검 통과! 로봇이 정상입니다.{RESET}")
     else:
-        print(f"{YELLOW}{BOLD}  ⚠  일부 항목에서 문제가 발생했습니다.{RESET}")
+        print(f"{YELLOW}{BOLD}  [WARN]  일부 항목에서 문제가 발생했습니다.{RESET}")
         print(f"  AGENTS.md 의 '흔한 문제 해결' 섹션을 참고하세요.")
     print(f"{BOLD}{'='*50}{RESET}\n")
 

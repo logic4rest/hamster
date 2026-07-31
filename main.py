@@ -1,11 +1,11 @@
 """
 티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (OpenCV + Keras 직접 실행 방식 + 바운딩 박스)
 ================================================================================
-- 무색 페트병 / 플라스틱 → 파란 LED (연속 2프레임 확정 + Beep)
-- 캔                   → 초록 LED (연속 2프레임 확정 + Beep)
-- 종이                 → 노란 LED (연속 2프레임 확정 + Beep)
-- 병 (유리병)          → 빨간 LED (연속 2프레임 확정 + Beep)
-- 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 2프레임 확정 + Beep)
+- 무색 페트병 / 플라스틱 → 파란 LED (연속 4프레임 확정 + Beep)
+- 캔                   → 초록 LED (연속 4프레임 확정 + Beep)
+- 종이                 → 노란 LED (연속 4프레임 확정 + Beep)
+- 병 (유리병)          → 빨간 LED (연속 4프레임 확정 + Beep)
+- 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 4프레임 확정 + Beep)
 - 없음 / 신뢰도 < 0.8   → 대기 (LED OFF)
 
 실행 방법:
@@ -25,7 +25,7 @@ MODEL_PATH  = os.path.join(MODEL_DIR, "keras_model.h5")
 LABELS_PATH = os.path.join(MODEL_DIR, "labels.txt")
 
 CONFIDENCE_THRESHOLD = 0.8   # 이 값 미만이면 폐기/대기 (없음 처리)
-REQUIRED_FRAMES      = 2     # 연속 2프레임 동일 시 최종 확정
+REQUIRED_FRAMES      = 4     # 연속 4프레임 동일 시 최종 확정
 COUNTDOWN_SEC        = 2     # 시작 전 카운트다운 초
 IMG_SIZE             = 224   # 티처블 머신 기본 입력 크기
 
@@ -195,7 +195,7 @@ def main():
     print("  - 종이                  -> 노란 LED (yellow)")
     print("  - 병(유리병)            -> 빨간 LED (red)")
     print("  - 종이팩                -> 하늘색 LED (cyan)")
-    print("  - 연속 2프레임 감지 시 배출 안내 확정")
+    print("  - 연속 4프레임 감지 시 배출 안내 확정")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 60 + "\n")
 
