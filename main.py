@@ -1,12 +1,12 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (OpenCV + Keras 직접 실행 방식 + 바운딩 박스)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (OpenCV + Keras 직접 실행 방식 + 신규 모델)
 ================================================================================
-- 무색 페트병 / 플라스틱 → 파란 LED (연속 4프레임 확정 + Beep)
-- 캔                   → 초록 LED (연속 4프레임 확정 + Beep)
-- 종이                 → 노란 LED (연속 4프레임 확정 + Beep)
-- 병 (유리병)          → 빨간 LED (연속 4프레임 확정 + Beep)
-- 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 4프레임 확정 + Beep)
-- 없음 / 신뢰도 < 0.8   → 대기 (LED OFF)
+- 무색 페트병, 무색플라스틱 → 파란 LED (연속 4프레임 확정 + Beep)
+- 캔                       → 초록 LED (연속 4프레임 확정 + Beep)
+- 종이                     → 노란 LED (연속 4프레임 확정 + Beep)
+- 유리병, 유리통           → 빨간 LED (연속 4프레임 확정 + Beep)
+- 종이팩                   → 하늘색(CYAN) LED (연속 4프레임 확정 + Beep)
+- 없음 / 신뢰도 < 0.8       → 대기 (LED OFF)
 
 실행 방법:
     python main.py
@@ -31,13 +31,19 @@ IMG_SIZE             = 224   # 티처블 머신 기본 입력 크기
 
 # ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
 CATEGORY_MAP = {
+    # 신규 모델 레이블 (models/labels.txt 기준)
+    "무색 페트병, 무색플라스틱": "플라스틱/페트병",
+    "유리병, 유리통": "병(유리병)",
+    "종이": "종이",
+    "종이팩": "종이팩",
+    "캔": "캔",
+    "없음": "없음",
+    # 하위 호환 레이블
     "무색 페트병": "플라스틱/페트병",
     "플라스틱": "플라스틱/페트병",
-    "캔": "캔",
-    "종이": "종이",
     "병": "병(유리병)",
+    "유리병": "병(유리병)",
     "종이팩(우유팩)": "종이팩",
-    "없음": "없음",
 }
 
 # 햄스터 로봇 LED 색상 매핑
@@ -58,6 +64,29 @@ COLOR_BGR_MAP = {
     "종이팩": (255, 235, 0),              # 하늘색
     "없음": (120, 120, 120),             # 회색
 }
+
+
+def map_raw_label_to_category(raw_label: str) -> str:
+    """학습 모델 원본 레이블 -> 통합 분리배출 카테고리 유연 매핑"""
+    if not raw_label or raw_label == "없음":
+        return "없음"
+
+    if raw_label in CATEGORY_MAP:
+        return CATEGORY_MAP[raw_label]
+
+    # 키워드 자동 감지 보완
+    if any(k in raw_label for k in ["페트병", "플라스틱"]):
+        return "플라스틱/페트병"
+    elif any(k in raw_label for k in ["유리병", "유리통", "병"]):
+        return "병(유리병)"
+    elif "종이팩" in raw_label or "우유팩" in raw_label:
+        return "종이팩"
+    elif "종이" in raw_label:
+        return "종이"
+    elif "캔" in raw_label:
+        return "캔"
+
+    return "없음"
 
 
 # ── 라벨 로드 ─────────────────────────────────────────────────────────────────
@@ -170,10 +199,10 @@ def countdown(cap: cv2.VideoCapture, seconds: int):
 
 # ── 메인 ──────────────────────────────────────────────────────────────────────
 def main():
-    print("[INFO] 모델을 불러오는 중...")
+    print("[INFO] 신규 모델을 불러오는 중...")
     model  = load_model(MODEL_PATH)
     labels = load_labels(LABELS_PATH)
-    print(f"[INFO] 레이블: {labels}")
+    print(f"[INFO] 학습 모델 레이블 목록: {labels}")
 
     print("[INFO] 햄스터 봇에 연결 중...")
     hamster = Hamster()
@@ -189,12 +218,12 @@ def main():
     countdown(cap, COUNTDOWN_SEC)
 
     print("\n" + "=" * 60)
-    print("  [쓰레기 분리배출 스마트 감지 시스템]")
-    print("  - 플라스틱 / 무색 페트병 -> 파란 LED (blue)")
-    print("  - 캔                    -> 초록 LED (green)")
-    print("  - 종이                  -> 노란 LED (yellow)")
-    print("  - 병(유리병)            -> 빨간 LED (red)")
-    print("  - 종이팩                -> 하늘색 LED (cyan)")
+    print("  [신규 모델 적용 쓰레기 분리배출 스마트 시스템]")
+    print("  - 무색 페트병 / 무색플라스틱 -> 파란 LED (blue)")
+    print("  - 캔                         -> 초록 LED (green)")
+    print("  - 종이                       -> 노란 LED (yellow)")
+    print("  - 유리병 / 유리통            -> 빨간 LED (red)")
+    print("  - 종이팩                     -> 하늘색 LED (cyan)")
     print("  - 연속 4프레임 감지 시 배출 안내 확정")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 60 + "\n")
@@ -219,7 +248,7 @@ def main():
             if confidence < CONFIDENCE_THRESHOLD:
                 mapped_category = "없음"
             else:
-                mapped_category = CATEGORY_MAP.get(raw_label, "없음")
+                mapped_category = map_raw_label_to_category(raw_label)
 
             if mapped_category != "없음":
                 if mapped_category == current_target:
