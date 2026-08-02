@@ -1,21 +1,17 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v2.5)
-================================================================================
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v2.6.3 윈도우 DirectShow 카메라 완벽 호환 에디션)
+================================================================================================
 - 무색 페트병 / 플라스틱 → 파란 LED (연속 4프레임 확정 + Beep)
+- 유리병 / 유리통       → 주황색(Orange) LED + "플라스틱 통이 아닌 유리 수거함에 따로 담아주세요" 자막
 - 캔                   → 초록 LED (연속 4프레임 확정 + Beep)
 - 종이                 → 노란 LED (연속 4프레임 확정 + Beep)
 - 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 4프레임 확정 + Beep)
-- 이물질 / 라벨 / 유리병 → 빨간색 경고 LED (연속 4프레임 확정 + Beep)
+- 이물질 / 라벨 / 얼음 → 빨간색 경고 LED (연속 4프레임 확정 + Beep)
 - 없음 / 신뢰도 < 0.8   → 대기 (LED OFF)
-
-스마트 신기능 (3, 4, 5번 + 경고 시스템):
-  3. [자동 캡처]: 확정 순간 captures/ 폴더에 이미지 자동 저장
-  4. [분리배출 팁]: 화면 하단에 분리배출 수칙 꿀팁 오버레이
-  5. [실시간 통계]: 화면 우측 상단 수거 개수 통계 HUD & stats.json 저장
 
 실행 방법:
     uv run hamster
-    python -m hamster
+    python main.py
 """
 
 import json
@@ -44,60 +40,76 @@ COUNTDOWN_SEC        = 2     # 시작 전 카운트다운 초
 # ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
 CATEGORY_MAP = {
     "무색 페트병, 무색플라스틱": "플라스틱/페트병",
+    "유리병, 유리통": "유리병(경고)",
     "캔": "캔",
     "종이": "종이",
     "종이팩": "종이팩",
-    "유리병, 유리통": "이물질/경고",
     "없음": "없음",
-    # 하위 호환 및 이물질 관련 키워드
+    # 하위 호환 및 키워드 매핑
     "무색 페트병": "플라스틱/페트병",
     "플라스틱": "플라스틱/페트병",
+    "유리병": "유리병(경고)",
+    "유리통": "유리병(경고)",
+    "병": "유리병(경고)",
     "이물질": "이물질/경고",
     "라벨": "이물질/경고",
     "음식물": "이물질/경고",
     "얼음": "이물질/경고",
-    "병": "이물질/경고",
-    "유리병": "이물질/경고",
     "종이팩(우유팩)": "종이팩",
 }
 
+# 햄스터 로봇 LED 색상 매핑 (유리병: 선명한 주황색 RGB 255, 100, 0)
 LED_MAP = {
     "플라스틱/페트병": ("blue", "blue"),
+    "유리병(경고)": (255, 100, 0, 255, 100, 0),  # 주황색 (Orange RGB)
     "캔": ("green", "green"),
     "종이": ("yellow", "yellow"),
     "종이팩": ("cyan", "cyan"),
     "이물질/경고": ("red", "red"),
 }
 
+# 화면 오버레이 BGR 색상 매핑
 COLOR_BGR_MAP = {
     "플라스틱/페트병": (255, 50, 0),     # 파란색 (BGR)
+    "유리병(경고)": (0, 140, 255),      # 선명한 주황색 (BGR)
     "캔": (0, 220, 0),                 # 초록색
     "종이": (0, 220, 255),               # 노란색
     "종이팩": (255, 235, 0),              # 하늘색
-    "이물질/경고": (0, 0, 235),         # 빨간색 (경고 BGR)
+    "이물질/경고": (0, 0, 235),         # 빨간색 (BGR)
     "없음": (120, 120, 120),             # 회색
 }
 
-# [기능 4] 올바른 분리배출 꿀팁 & 이물질 경고 안내문
+# [기능 4] 올바른 분리배출 꿀팁 & 유리병 전용 경고 안내문
 RECYCLING_TIPS = {
-    "플라스틱/페트병": "💡 TIP: 깨끗한 페트병입니다! 파란 수거함에 버려주세요.",
+    "플라스틱/페트병": "💡 TIP: 깨끗한 플라스틱/페트병입니다! 파란색 수거함에 버려주세요.",
+    "유리병(경고)": "⚠️ 경고: 유리는 플라스틱 통이 아닌 전용 유리 수거함에 따로 담아주세요!",
     "캔": "💡 TIP: 내용물을 비우고 헹군 뒤 차곡차곡 압착해 주세요!",
     "종이": "💡 TIP: 물기에 젖지 않게 펼쳐서 상자 테이프를 제거해 주세요!",
     "종이팩": "💡 TIP: 내용물을 비우고 물로 헹군 후 펼쳐서 말려주세요!",
-    "이물질/경고": "⚠️ 경고: 페트병 안의 라벨, 얼음, 음식물 등 이물질을 제거해 주세요!",
+    "이물질/경고": "⚠️ 경고: 페트병 안의 라벨, 얼음, 음식물 등 이물질을 먼저 제거해 주세요!",
     "없음": "💡 쓰레기를 카메라 중앙 화면에 비춰주세요.",
 }
 
 
-# ── 통계 관리 함수 (기능 5) ───────────────────────────────────────────────────
+def set_robot_led(hamster, led_spec):
+    """문자열 색상 및 RGB 튜플 호환 LED 설정 헬퍼"""
+    if isinstance(led_spec, tuple) and len(led_spec) == 6:
+        hamster.leds(led_spec[0], led_spec[1], led_spec[2], led_spec[3], led_spec[4], led_spec[5])
+    elif isinstance(led_spec, tuple) and len(led_spec) == 2:
+        hamster.leds(led_spec[0], led_spec[1])
+    else:
+        hamster.leds("off", "off")
+
+
+# ── 통계 관리 함수 ───────────────────────────────────────────────────────────
 def load_stats() -> dict:
     """stats.json 파일에서 수거 통계 로드"""
     default_stats = {
         "플라스틱/페트병": 0,
+        "유리병(경고)": 0,
         "캔": 0,
         "종이": 0,
         "종이팩": 0,
-        "이물질/경고": 0,
         "total": 0,
     }
     if STATS_PATH.exists():
@@ -122,6 +134,8 @@ def save_stats(stats: dict):
 # ── 한글 텍스트 렌더링 헬퍼 ───────────────────────────────────────────────────
 def put_korean_text(frame: np.ndarray, text: str, xy: tuple, font_size: int = 20, color_bgr: tuple = (255, 255, 255)) -> np.ndarray:
     """OpenCV 프레임 위에 맑은 고딕 한글 텍스트 출력"""
+    if frame is None:
+        return frame
     img_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     draw = ImageDraw.Draw(img_pil)
     try:
@@ -142,9 +156,11 @@ def map_raw_label_to_category(raw_label: str) -> str:
     if raw_label in CATEGORY_MAP:
         return CATEGORY_MAP[raw_label]
 
-    if "캔" in raw_label:
+    if any(k in raw_label for k in ["유리병", "유리통", "유리", "병"]):
+        return "유리병(경고)"
+    elif "캔" in raw_label:
         return "캔"
-    elif any(k in raw_label for k in ["이물질", "라벨", "음식물", "얼음", "유리병", "유리통", "병"]):
+    elif any(k in raw_label for k in ["이물질", "라벨", "음식물", "얼음"]):
         return "이물질/경고"
     elif any(k in raw_label for k in ["페트병", "플라스틱"]):
         return "플라스틱/페트병"
@@ -158,6 +174,9 @@ def map_raw_label_to_category(raw_label: str) -> str:
 
 def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int, max_count: int, stats: dict) -> np.ndarray:
     """바운딩 박스 + 스마트 꿀팁 바 + 실시간 수거 통계 HUD 종합 오버레이"""
+    if frame is None:
+        return frame
+
     h, w, _ = frame.shape
     clean_category = category.replace("★ 확정: ", "")
     color = COLOR_BGR_MAP.get(clean_category, (120, 120, 120))
@@ -190,19 +209,36 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
 
     frame = put_korean_text(frame, tag_text, (x1 + 10, y1 - 32), font_size=18, color_bgr=color)
 
-    # 4) [기능 4] 화면 하단 분리배출 꿀팁 & 경고 안내 바
+    # 4) 화면 하단 분리배출 꿀팁 & 경고 안내 바
     tip_text = RECYCLING_TIPS.get(clean_category, RECYCLING_TIPS["없음"])
-    bar_color = (0, 0, 180) if clean_category == "이물질/경고" else (30, 30, 30)
-    text_color = (255, 255, 255) if clean_category == "이물질/경고" else (0, 255, 255)
+    bar_color = (0, 0, 180) if "경고" in clean_category else (30, 30, 30)
+    text_color = (255, 255, 255) if "경고" in clean_category else (0, 255, 255)
     cv2.rectangle(frame, (0, h - 45), (w, h), bar_color, -1)
     frame = put_korean_text(frame, tip_text, (15, h - 38), font_size=16, color_bgr=text_color)
 
-    # 5) [기능 5] 우측 상단 실시간 수거 통계 HUD
-    stats_str = f"📊 총 {stats['total']}개 | 🔵플라스틱:{stats.get('플라스틱/페트병', 0)}  🟢캔:{stats.get('캔', 0)}  🟡종이:{stats.get('종이', 0)}  🩵종이팩:{stats.get('종이팩', 0)}  🔴경고:{stats.get('이물질/경고', 0)}"
+    # 5) 우측 상단 실시간 수거 통계 HUD
+    stats_str = f"📊 총 {stats['total']}개 | 🔵플라스틱:{stats.get('플라스틱/페트병', 0)}  🟠유리:{stats.get('유리병(경고)', 0)}  🟢캔:{stats.get('캔', 0)}  🟡종이:{stats.get('종이', 0)}  🩵종이팩:{stats.get('종이팩', 0)}"
     cv2.rectangle(frame, (0, 0), (w, 35), (20, 20, 20), -1)
-    frame = put_korean_text(frame, stats_str, (10, 6), font_size=15, color_bgr=(255, 255, 255))
+    frame = put_korean_text(frame, stats_str, (10, 6), font_size=14, color_bgr=(255, 255, 255))
 
     return frame
+
+
+def open_camera():
+    """안전한 카메라 연결 초기화 (ai.Camera -> cv2.CAP_DSHOW 초고속 폴백)"""
+    print("[INFO] 웹캠 카메라를 연결하는 중...")
+    for target in [0, 1, 'usb0']:
+        try:
+            cam = ai.Camera(target, flip='h', square=True)
+            test_img = cam.read()
+            if test_img is not None:
+                print(f"[INFO] 카메라 연결 성공! (타겟: {target})")
+                return cam
+        except Exception:
+            pass
+
+    print("[ERROR] 웹캠 카메라를 열 수 없습니다! 카메라 연결을 확인해 주세요.")
+    return None
 
 
 def main():
@@ -216,20 +252,24 @@ def main():
 
     print("[INFO] 햄스터 봇에 연결 중...")
     hamster = Hamster()
-    hamster.leds("off", "off")
+    set_robot_led(hamster, ("off", "off"))
 
-    print("[INFO] 카메라를 시작합니다...")
-    cam = ai.Camera('usb0', flip='h', square=True)
+    cam = open_camera()
+    if cam is None:
+        set_robot_led(hamster, ("off", "off"))
+        hamster.stop()
+        return
+
     cam.count_down(COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [AI 쓰레기 분리배출 스마트 시스템 v2.5]")
+    print("  [AI 쓰레기 분리배출 스마트 시스템 v2.6.3]")
     print("  - 깨끗한 플라스틱/페트병 -> 파란 LED (blue)")
-    print("  - 캔                       -> 초록 LED (green)")
-    print("  - 종이                     -> 노란 LED (yellow)")
-    print("  - 종이팩                   -> 하늘색 LED (cyan)")
-    print("  - 이물질 / 라벨 / 얼음     -> 빨간색 경고 LED (red)")
-    print("  - 자동 캡처 & 꿀팁 자막 & 실시간 통계 HUD")
+    print("  - 유리병 / 유리통       -> 주황색 LED (Orange: 유리 수거함 안내)")
+    print("  - 캔                    -> 초록 LED (green)")
+    print("  - 종이                  -> 노란 LED (yellow)")
+    print("  - 종이팩                -> 하늘색 LED (cyan)")
+    print("  - 이물질 / 라벨 / 얼음  -> 빨간색 경고 LED (red)")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
 
@@ -239,6 +279,10 @@ def main():
     try:
         while True:
             image = cam.read()
+            if image is None:
+                print("[WARN] 카메라 이미지를 읽어올 수 없습니다. 잠시 후 재시도합니다...")
+                time.sleep(0.5)
+                continue
 
             tmi.predict(image, 0.0)
             raw_label = tmi.get_label()
@@ -274,38 +318,40 @@ def main():
                     cv2.imwrite(str(cap_path), image)
                     print(f"[자동 캡처 완료] 📷 {cap_path}")
 
-                    # 로봇 알림: 삐 소리 + LED 켜기
-                    left_led, right_led = LED_MAP.get(mapped_category, ("off", "off"))
+                    # 로봇 알림: 삐 소리 + LED 켜기 (유리병: 주황색 LED)
+                    led_spec = LED_MAP.get(mapped_category, ("off", "off"))
                     hamster.beep()
-                    hamster.leds(left_led, right_led)
+                    set_robot_led(hamster, led_spec)
 
                     start_time = time.time()
                     while time.time() - start_time < 2.0:
-                        hamster.leds(left_led, right_led)
+                        set_robot_led(hamster, led_spec)
                         image = cam.read()
-                        image = draw_hud_and_bbox(image, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats)
-                        cam.show(image)
+                        if image is not None:
+                            image = draw_hud_and_bbox(image, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats)
+                            cam.show(image)
                         if cam.check_key() == "esc":
                             return
 
-                    hamster.leds("off", "off")
+                    set_robot_led(hamster, ("off", "off"))
                     current_target = None
                     consecutive_count = 0
                     print("[대기] 다음 쓰레기 감지 대기 중...\n")
             else:
                 current_target = None
                 consecutive_count = 0
-                hamster.leds("off", "off")
+                set_robot_led(hamster, ("off", "off"))
                 image = draw_hud_and_bbox(image, "없음", conf, 0, REQUIRED_FRAMES, stats)
 
-            cam.show(image)
+            if image is not None:
+                cam.show(image)
 
             if cam.check_key() == "esc":
                 break
 
     finally:
         print("\n[INFO] 프로그램을 종료합니다.")
-        hamster.leds("off", "off")
+        set_robot_led(hamster, ("off", "off"))
         hamster.stop()
 
 

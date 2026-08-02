@@ -12,3 +12,7 @@ build/
 .venv/
 env/
 venv/
+
+# Runtime captures & local stats
+captures/
+stats.json
