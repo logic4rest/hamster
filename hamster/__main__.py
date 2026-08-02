@@ -1,15 +1,16 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v2.5 이물질/경고 감지 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v2.5)
 ================================================================================
 - 무색 페트병 / 플라스틱 → 파란 LED (연속 4프레임 확정 + Beep)
-- 이물질 / 라벨 / 음식물 남음 → 빨간색 경고 LED (연속 4프레임 확정 + Beep)
+- 캔                   → 초록 LED (연속 4프레임 확정 + Beep)
 - 종이                 → 노란 LED (연속 4프레임 확정 + Beep)
 - 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 4프레임 확정 + Beep)
+- 이물질 / 라벨 / 유리병 → 빨간색 경고 LED (연속 4프레임 확정 + Beep)
 - 없음 / 신뢰도 < 0.8   → 대기 (LED OFF)
 
 스마트 신기능 (3, 4, 5번 + 경고 시스템):
   3. [자동 캡처]: 확정 순간 captures/ 폴더에 이미지 자동 저장
-  4. [분리배출 팁]: 화면 하단에 이물질 제거 경고 및 분리배출 꿀팁 오버레이
+  4. [분리배출 팁]: 화면 하단에 분리배출 수칙 꿀팁 오버레이
   5. [실시간 통계]: 화면 우측 상단 수거 개수 통계 HUD & stats.json 저장
 
 실행 방법:
@@ -43,10 +44,10 @@ COUNTDOWN_SEC        = 2     # 시작 전 카운트다운 초
 # ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
 CATEGORY_MAP = {
     "무색 페트병, 무색플라스틱": "플라스틱/페트병",
+    "캔": "캔",
     "종이": "종이",
     "종이팩": "종이팩",
     "유리병, 유리통": "이물질/경고",
-    "캔": "이물질/경고",
     "없음": "없음",
     # 하위 호환 및 이물질 관련 키워드
     "무색 페트병": "플라스틱/페트병",
@@ -62,25 +63,28 @@ CATEGORY_MAP = {
 
 LED_MAP = {
     "플라스틱/페트병": ("blue", "blue"),
-    "이물질/경고": ("red", "red"),
+    "캔": ("green", "green"),
     "종이": ("yellow", "yellow"),
     "종이팩": ("cyan", "cyan"),
+    "이물질/경고": ("red", "red"),
 }
 
 COLOR_BGR_MAP = {
     "플라스틱/페트병": (255, 50, 0),     # 파란색 (BGR)
-    "이물질/경고": (0, 0, 235),         # 빨간색 (경고 BGR)
+    "캔": (0, 220, 0),                 # 초록색
     "종이": (0, 220, 255),               # 노란색
     "종이팩": (255, 235, 0),              # 하늘색
+    "이물질/경고": (0, 0, 235),         # 빨간색 (경고 BGR)
     "없음": (120, 120, 120),             # 회색
 }
 
 # [기능 4] 올바른 분리배출 꿀팁 & 이물질 경고 안내문
 RECYCLING_TIPS = {
     "플라스틱/페트병": "💡 TIP: 깨끗한 페트병입니다! 파란 수거함에 버려주세요.",
-    "이물질/경고": "⚠️ 경고: 페트병 안의 라벨, 얼음, 음식물 등 이물질을 제거해 주세요!",
+    "캔": "💡 TIP: 내용물을 비우고 헹군 뒤 차곡차곡 압착해 주세요!",
     "종이": "💡 TIP: 물기에 젖지 않게 펼쳐서 상자 테이프를 제거해 주세요!",
     "종이팩": "💡 TIP: 내용물을 비우고 물로 헹군 후 펼쳐서 말려주세요!",
+    "이물질/경고": "⚠️ 경고: 페트병 안의 라벨, 얼음, 음식물 등 이물질을 제거해 주세요!",
     "없음": "💡 쓰레기를 카메라 중앙 화면에 비춰주세요.",
 }
 
@@ -90,9 +94,10 @@ def load_stats() -> dict:
     """stats.json 파일에서 수거 통계 로드"""
     default_stats = {
         "플라스틱/페트병": 0,
-        "이물질/경고": 0,
+        "캔": 0,
         "종이": 0,
         "종이팩": 0,
+        "이물질/경고": 0,
         "total": 0,
     }
     if STATS_PATH.exists():
@@ -137,7 +142,9 @@ def map_raw_label_to_category(raw_label: str) -> str:
     if raw_label in CATEGORY_MAP:
         return CATEGORY_MAP[raw_label]
 
-    if any(k in raw_label for k in ["이물질", "라벨", "음식물", "얼음", "유리병", "유리통", "병", "캔"]):
+    if "캔" in raw_label:
+        return "캔"
+    elif any(k in raw_label for k in ["이물질", "라벨", "음식물", "얼음", "유리병", "유리통", "병"]):
         return "이물질/경고"
     elif any(k in raw_label for k in ["페트병", "플라스틱"]):
         return "플라스틱/페트병"
@@ -191,7 +198,7 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     frame = put_korean_text(frame, tip_text, (15, h - 38), font_size=16, color_bgr=text_color)
 
     # 5) [기능 5] 우측 상단 실시간 수거 통계 HUD
-    stats_str = f"📊 총 {stats['total']}개 | 🔵플라스틱:{stats.get('플라스틱/페트병', 0)}  🔴경고:{stats.get('이물질/경고', 0)}  🟡종이:{stats.get('종이', 0)}  🩵종이팩:{stats.get('종이팩', 0)}"
+    stats_str = f"📊 총 {stats['total']}개 | 🔵플라스틱:{stats.get('플라스틱/페트병', 0)}  🟢캔:{stats.get('캔', 0)}  🟡종이:{stats.get('종이', 0)}  🩵종이팩:{stats.get('종이팩', 0)}  🔴경고:{stats.get('이물질/경고', 0)}"
     cv2.rectangle(frame, (0, 0), (w, 35), (20, 20, 20), -1)
     frame = put_korean_text(frame, stats_str, (10, 6), font_size=15, color_bgr=(255, 255, 255))
 
@@ -218,9 +225,10 @@ def main():
     print("\n" + "=" * 65)
     print("  [AI 쓰레기 분리배출 스마트 시스템 v2.5]")
     print("  - 깨끗한 플라스틱/페트병 -> 파란 LED (blue)")
-    print("  - 이물질 / 라벨 / 음식물 -> 빨간색 경고 LED (red)")
-    print("  - 종이                   -> 노란 LED (yellow)")
-    print("  - 종이팩                 -> 하늘색 LED (cyan)")
+    print("  - 캔                       -> 초록 LED (green)")
+    print("  - 종이                     -> 노란 LED (yellow)")
+    print("  - 종이팩                   -> 하늘색 LED (cyan)")
+    print("  - 이물질 / 라벨 / 얼음     -> 빨간색 경고 LED (red)")
     print("  - 자동 캡처 & 꿀팁 자막 & 실시간 통계 HUD")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
@@ -254,12 +262,12 @@ def main():
                 if consecutive_count >= REQUIRED_FRAMES:
                     print(f"\n[★ 확정 ★] 배출 안내: {mapped_category} (연속 {REQUIRED_FRAMES}프레임 감지!)")
 
-                    # [기능 5] 통계 카운트 증가 & 저장
+                    # 통계 카운트 증가 & 저장
                     stats[mapped_category] = stats.get(mapped_category, 0) + 1
                     stats["total"] += 1
                     save_stats(stats)
 
-                    # [기능 3] 확정 순간 자동 캡처
+                    # 확정 순간 자동 캡처
                     timestamp = time.strftime("%Y%m%d_%H%M%S")
                     safe_cat = mapped_category.replace('/', '_')
                     cap_path = CAPTURES_DIR / f"{timestamp}_{safe_cat}.jpg"
