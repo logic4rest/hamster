@@ -1,8 +1,8 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (OpenCV + Keras 직접 실행 방식 v2.6.3 DirectShow 에디션)
-================================================================================================
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (OpenCV + Keras 직접 실행 방식 v2.7 유리병/플라스틱 혼동 방지)
+====================================================================================================
 - 무색 페트병 / 플라스틱 → 파란 LED (연속 4프레임 확정 + Beep)
-- 유리병 / 유리통       → 주황색(Orange) LED + "플라스틱 통이 아닌 유리 수거함에 따로 담아주세요" 자막
+- 유리병 / 유리통       → 주황색(Orange) LED + "플라스틱 수거함 ❌ -> 유리 전용 수거함 ⭕" 강력 안내 자막
 - 캔                   → 초록 LED (연속 4프레임 확정 + Beep)
 - 종이                 → 노란 LED (연속 4프레임 확정 + Beep)
 - 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 4프레임 확정 + Beep)
@@ -40,7 +40,7 @@ IMG_SIZE             = 224   # 티처블 머신 기본 입력 크기
 # ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
 CATEGORY_MAP = {
     "무색 페트병, 무색플라스틱": "플라스틱/페트병",
-    "유리병, 유리통": "유리병(경고)",
+    "유리병, 유리통": "유리병(별도 수거)",
     "캔": "캔",
     "종이": "종이",
     "종이팩": "종이팩",
@@ -48,9 +48,9 @@ CATEGORY_MAP = {
     # 하위 호환 및 키워드 매핑
     "무색 페트병": "플라스틱/페트병",
     "플라스틱": "플라스틱/페트병",
-    "유리병": "유리병(경고)",
-    "유리통": "유리병(경고)",
-    "병": "유리병(경고)",
+    "유리병": "유리병(별도 수거)",
+    "유리통": "유리병(별도 수거)",
+    "병": "유리병(별도 수거)",
     "이물질": "이물질/경고",
     "라벨": "이물질/경고",
     "음식물": "이물질/경고",
@@ -61,7 +61,7 @@ CATEGORY_MAP = {
 # 햄스터 로봇 LED 색상 매핑 (유리병: 선명한 주황색 RGB 255, 100, 0)
 LED_MAP = {
     "플라스틱/페트병": ("blue", "blue"),
-    "유리병(경고)": (255, 100, 0, 255, 100, 0),  # 주황색 (Orange RGB)
+    "유리병(별도 수거)": (255, 100, 0, 255, 100, 0),  # 주황색 (Orange RGB)
     "캔": ("green", "green"),
     "종이": ("yellow", "yellow"),
     "종이팩": ("cyan", "cyan"),
@@ -71,7 +71,7 @@ LED_MAP = {
 # 화면 오버레이 BGR 색상 매핑
 COLOR_BGR_MAP = {
     "플라스틱/페트병": (255, 50, 0),     # 파란색 (BGR)
-    "유리병(경고)": (0, 140, 255),      # 선명한 주황색 (BGR)
+    "유리병(별도 수거)": (0, 140, 255),    # 선명한 주황색 (BGR)
     "캔": (0, 220, 0),                 # 초록색
     "종이": (0, 220, 255),               # 노란색
     "종이팩": (255, 235, 0),              # 하늘색
@@ -79,10 +79,10 @@ COLOR_BGR_MAP = {
     "없음": (120, 120, 120),             # 회색
 }
 
-# [기능 4] 올바른 분리배출 꿀팁 & 유리병 전용 경고 안내문
+# [기능 4] 올바른 분리배출 꿀팁 & 유리병 혼동 방지 안내문
 RECYCLING_TIPS = {
-    "플라스틱/페트병": "💡 TIP: 깨끗한 플라스틱/페트병입니다! 파란색 수거함에 버려주세요.",
-    "유리병(경고)": "⚠️ 경고: 유리는 플라스틱 통이 아닌 전용 유리 수거함에 따로 담아주세요!",
+    "플라스틱/페트병": "💡 TIP: 깨끗한 플라스틱/페트병입니다! (유리가 섞이지 않도록 주의해 파란 수거함에 배출)",
+    "유리병(별도 수거)": "⚠️ 경고: 유리병은 플라스틱 통에 절대 넣지 말고 전용 유리 수거함으로 따로 담아주세요!",
     "캔": "💡 TIP: 내용물을 비우고 헹군 뒤 차곡차곡 압착해 주세요!",
     "종이": "💡 TIP: 물기에 젖지 않게 펼쳐서 상자 테이프를 제거해 주세요!",
     "종이팩": "💡 TIP: 내용물을 비우고 물로 헹군 후 펼쳐서 말려주세요!",
@@ -106,7 +106,7 @@ def load_stats() -> dict:
     """stats.json 파일에서 수거 통계 로드"""
     default_stats = {
         "플라스틱/페트병": 0,
-        "유리병(경고)": 0,
+        "유리병(별도 수거)": 0,
         "캔": 0,
         "종이": 0,
         "종이팩": 0,
@@ -157,7 +157,7 @@ def map_raw_label_to_category(raw_label: str) -> str:
         return CATEGORY_MAP[raw_label]
 
     if any(k in raw_label for k in ["유리병", "유리통", "유리", "병"]):
-        return "유리병(경고)"
+        return "유리병(별도 수거)"
     elif "캔" in raw_label:
         return "캔"
     elif any(k in raw_label for k in ["이물질", "라벨", "음식물", "얼음"]):
@@ -246,9 +246,15 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     # 3) 상단 중앙 카테고리 태그 바
     if clean_category != "없음":
         if category.startswith("★ 확정:"):
-            tag_text = f"[확정] {clean_category}"
+            if clean_category == "유리병(별도 수거)":
+                tag_text = "[별도 배출] 유리병 -> 전용 수거함으로!"
+            else:
+                tag_text = f"[확정] {clean_category}"
         else:
-            tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}]"
+            if clean_category == "플라스틱/페트병" and conf < 0.90:
+                tag_text = f"{clean_category} | {conf:.0%} (유리 여부 재확인 필요)"
+            else:
+                tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}]"
     else:
         tag_text = "쓰레기 감지 대기 중..."
 
@@ -256,13 +262,13 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
 
     # 4) 화면 하단 분리배출 꿀팁 & 경고 안내 바
     tip_text = RECYCLING_TIPS.get(clean_category, RECYCLING_TIPS["없음"])
-    bar_color = (0, 0, 180) if "경고" in clean_category else (30, 30, 30)
-    text_color = (255, 255, 255) if "경고" in clean_category else (0, 255, 255)
+    bar_color = (0, 0, 180) if "경고" in clean_category or "유리병" in clean_category else (30, 30, 30)
+    text_color = (255, 255, 255) if "경고" in clean_category or "유리병" in clean_category else (0, 255, 255)
     cv2.rectangle(frame, (0, h - 45), (w, h), bar_color, -1)
-    frame = put_korean_text(frame, tip_text, (15, h - 38), font_size=16, color_bgr=text_color)
+    frame = put_korean_text(frame, tip_text, (15, h - 38), font_size=15, color_bgr=text_color)
 
     # 5) 우측 상단 실시간 수거 통계 HUD
-    stats_str = f"📊 총 {stats['total']}개 | 🔵플라스틱:{stats.get('플라스틱/페트병', 0)}  🟠유리:{stats.get('유리병(경고)', 0)}  🟢캔:{stats.get('캔', 0)}  🟡종이:{stats.get('종이', 0)}  🩵종이팩:{stats.get('종이팩', 0)}"
+    stats_str = f"📊 총 {stats['total']}개 | 🔵플라스틱:{stats.get('플라스틱/페트병', 0)}  🟠유리:{stats.get('유리병(별도 수거)', 0)}  🟢캔:{stats.get('캔', 0)}  🟡종이:{stats.get('종이', 0)}  🩵종이팩:{stats.get('종이팩', 0)}"
     cv2.rectangle(frame, (0, 0), (w, 35), (20, 20, 20), -1)
     frame = put_korean_text(frame, stats_str, (10, 6), font_size=14, color_bgr=(255, 255, 255))
 
@@ -290,10 +296,9 @@ def countdown(cap: cv2.VideoCapture, seconds: int):
 
 
 def open_camera():
-    """윈도우 DirectShow 및 인덱스 0~3 초고속 자동 카메라 연결"""
+    """윈도우 DirectShow 및 인덱스 0~3 자동 카메라 연결"""
     print("[INFO] 웹캠 카메라를 연결하는 중...")
     for idx in [0, 1, 2, 3]:
-        # 1) DirectShow 방식 (윈도우 전용 가장 호환성 높은 방식)
         cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
         if cap.isOpened():
             ret, frame = cap.read()
@@ -301,7 +306,6 @@ def open_camera():
                 print(f"[INFO] 카메라 연결 성공! (인덱스: {idx}, DirectShow 모드)")
                 return cap
 
-        # 2) 기본 OpenCV 방식
         cap = cv2.VideoCapture(idx)
         if cap.isOpened():
             ret, frame = cap.read()
@@ -337,9 +341,9 @@ def main():
     countdown(cap, COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [AI 쓰레기 분리배출 스마트 시스템 v2.6.3 DirectShow]")
+    print("  [AI 쓰레기 분리배출 스마트 시스템 v2.7 DirectShow]")
     print("  - 깨끗한 플라스틱/페트병 -> 파란 LED (blue)")
-    print("  - 유리병 / 유리통       -> 주황색 LED (Orange: 유리 수거함 안내)")
+    print("  - 유리병 / 유리통       -> 주황색 LED (Orange: 전용 유리 수거함 안내)")
     print("  - 캔                    -> 초록 LED (green)")
     print("  - 종이                  -> 노란 LED (yellow)")
     print("  - 종이팩                -> 하늘색 LED (cyan)")
