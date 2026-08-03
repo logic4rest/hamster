@@ -1,13 +1,9 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v2.7 유리병/플라스틱 혼동 방지 & 별도 수거함 안내 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v2.8.1 CP949 윈도우 인코딩 안점화 에디션)
 ====================================================================================================
-- 무색 페트병 / 플라스틱 → 파란 LED (연속 4프레임 확정 + Beep)
-- 유리병 / 유리통       → 주황색(Orange) LED + "플라스틱 수거함 ❌ -> 유리 전용 수거함 ⭕" 강력 안내 자막
-- 캔                   → 초록 LED (연속 4프레임 확정 + Beep)
-- 종이                 → 노란 LED (연속 4프레임 확정 + Beep)
-- 종이팩 (우유팩)      → 하늘색(CYAN) LED (연속 4프레임 확정 + Beep)
-- 이물질 / 라벨 / 얼음 → 빨간색 경고 LED (연속 4프레임 확정 + Beep)
-- 없음 / 신뢰도 < 0.8   → 대기 (LED OFF)
+- 정상 쓰레기 (플라스틱, 유리병, 캔, 종이, 종이팩) -> 지정 LED 점등 (무음 / 소리 없음)
+- 오배출 / 이물질 (라벨, 음식물, 얼음 등)          -> 빨간색 경고 LED + 경고 삐(Beep) 소리 출력!
+- 없음 / 신뢰도 < 0.8                            -> 대기 (LED OFF)
 
 실행 방법:
     uv run hamster
@@ -16,8 +12,16 @@
 
 import json
 import os
+import sys
 import time
 from pathlib import Path
+
+# 윈도우 콘솔 CP949 UTF-8 인코딩 안전 처리
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 import cv2
 import numpy as np
@@ -79,14 +83,14 @@ COLOR_BGR_MAP = {
     "없음": (120, 120, 120),             # 회색
 }
 
-# [기능 4] 올바른 분리배출 꿀팁 & 유리병 혼동 방지 안내문
+# [기능 4] 올바른 분리배출 꿀팁 & 이물질 경고 안내문 (화면 GUI용)
 RECYCLING_TIPS = {
-    "플라스틱/페트병": "💡 TIP: 깨끗한 플라스틱/페트병입니다! (유리가 섞이지 않도록 주의해 파란 수거함에 배출)",
-    "유리병(별도 수거)": "⚠️ 경고: 유리병은 플라스틱 통에 절대 넣지 말고 전용 유리 수거함으로 따로 담아주세요!",
-    "캔": "💡 TIP: 내용물을 비우고 헹군 뒤 차곡차곡 압착해 주세요!",
-    "종이": "💡 TIP: 물기에 젖지 않게 펼쳐서 상자 테이프를 제거해 주세요!",
-    "종이팩": "💡 TIP: 내용물을 비우고 물로 헹군 후 펼쳐서 말려주세요!",
-    "이물질/경고": "⚠️ 경고: 페트병 안의 라벨, 얼음, 음식물 등 이물질을 먼저 제거해 주세요!",
+    "플라스틱/페트병": "💡 정상 감지: 깨끗한 플라스틱/페트병입니다. (파란색 수거함 배출)",
+    "유리병(별도 수거)": "⚠️ 주의: 유리병은 플라스틱 통이 아닌 전용 유리 수거함으로 따로 담아주세요!",
+    "캔": "💡 정상 감지: 내용물을 비운 캔입니다. (초록색 수거함 배출)",
+    "종이": "💡 정상 감지: 종이입니다. (노란색 수거함 배출)",
+    "종이팩": "💡 정상 감지: 종이팩입니다. (하늘색 수거함 배출)",
+    "이물질/경고": "🚨 잘못된 배출 경고! 라벨, 얼음, 음식물 등 이물질을 먼저 깨끗이 제거하세요!",
     "없음": "💡 쓰레기를 카메라 중앙 화면에 비춰주세요.",
 }
 
@@ -110,6 +114,7 @@ def load_stats() -> dict:
         "캔": 0,
         "종이": 0,
         "종이팩": 0,
+        "이물질/경고": 0,
         "total": 0,
     }
     if STATS_PATH.exists():
@@ -201,31 +206,30 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     # 3) 상단 중앙 카테고리 태그 바
     if clean_category != "없음":
         if category.startswith("★ 확정:"):
-            if clean_category == "유리병(별도 수거)":
+            if clean_category == "이물질/경고":
+                tag_text = "[경고] 오배출/이물질 감지!"
+            elif clean_category == "유리병(별도 수거)":
                 tag_text = "[별도 배출] 유리병 -> 전용 수거함으로!"
             else:
-                tag_text = f"[확정] {clean_category}"
+                tag_text = f"[정상] {clean_category}"
         else:
-            if clean_category == "플라스틱/페트병" and conf < 0.90:
-                tag_text = f"{clean_category} | {conf:.0%} (유리 여부 재확인 필요)"
-            else:
-                tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}]"
+            tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}]"
     else:
         tag_text = "쓰레기 감지 대기 중..."
 
     frame = put_korean_text(frame, tag_text, (x1 + 10, y1 - 32), font_size=18, color_bgr=color)
 
-    # 4) 화면 하단 분리배출 꿀팁 & 경고 안내 바
+    # 4) 화면 하단 분리배출 안내 바
     tip_text = RECYCLING_TIPS.get(clean_category, RECYCLING_TIPS["없음"])
-    bar_color = (0, 0, 180) if "경고" in clean_category or "유리병" in clean_category else (30, 30, 30)
-    text_color = (255, 255, 255) if "경고" in clean_category or "유리병" in clean_category else (0, 255, 255)
+    bar_color = (0, 0, 180) if "경고" in clean_category or "이물질" in clean_category else (30, 30, 30)
+    text_color = (255, 255, 255) if "경고" in clean_category or "이물질" in clean_category else (0, 255, 255)
     cv2.rectangle(frame, (0, h - 45), (w, h), bar_color, -1)
     frame = put_korean_text(frame, tip_text, (15, h - 38), font_size=15, color_bgr=text_color)
 
     # 5) 우측 상단 실시간 수거 통계 HUD
-    stats_str = f"📊 총 {stats['total']}개 | 🔵플라스틱:{stats.get('플라스틱/페트병', 0)}  🟠유리:{stats.get('유리병(별도 수거)', 0)}  🟢캔:{stats.get('캔', 0)}  🟡종이:{stats.get('종이', 0)}  🩵종이팩:{stats.get('종이팩', 0)}"
+    stats_str = f"[통계] 총 {stats['total']}개 | 플라스틱:{stats.get('플라스틱/페트병', 0)}  유리:{stats.get('유리병(별도 수거)', 0)}  캔:{stats.get('캔', 0)}  종이:{stats.get('종이', 0)}  종이팩:{stats.get('종이팩', 0)}  경고:{stats.get('이물질/경고', 0)}"
     cv2.rectangle(frame, (0, 0), (w, 35), (20, 20, 20), -1)
-    frame = put_korean_text(frame, stats_str, (10, 6), font_size=14, color_bgr=(255, 255, 255))
+    frame = put_korean_text(frame, stats_str, (10, 6), font_size=13, color_bgr=(255, 255, 255))
 
     return frame
 
@@ -269,13 +273,9 @@ def main():
     cam.count_down(COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [AI 쓰레기 분리배출 스마트 시스템 v2.7]")
-    print("  - 깨끗한 플라스틱/페트병 -> 파란 LED (blue)")
-    print("  - 유리병 / 유리통       -> 주황색 LED (Orange: 전용 유리 수거함 안내)")
-    print("  - 캔                    -> 초록 LED (green)")
-    print("  - 종이                  -> 노란 LED (yellow)")
-    print("  - 종이팩                -> 하늘색 LED (cyan)")
-    print("  - 이물질 / 라벨 / 얼음  -> 빨간색 경고 LED (red)")
+    print("  [AI 쓰레기통 스마트 감지 시스템 v2.8]")
+    print("  - 정상 쓰레기 (플라스틱/유리/캔/종이/종이팩) -> 지정 LED 점등 (무음)")
+    print("  - 잘못된 배출 / 이물질                       -> 빨간색 경고 LED + 경고 Beep 소리!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
 
@@ -310,7 +310,7 @@ def main():
 
                 # 4프레임 확정
                 if consecutive_count >= REQUIRED_FRAMES:
-                    print(f"\n[★ 확정 ★] 배출 안내: {mapped_category} (연속 {REQUIRED_FRAMES}프레임 감지!)")
+                    print(f"\n[확정] 감지 결과: {mapped_category} (연속 {REQUIRED_FRAMES}프레임 감지!)")
 
                     # 통계 카운트 증가 & 저장
                     stats[mapped_category] = stats.get(mapped_category, 0) + 1
@@ -322,11 +322,16 @@ def main():
                     safe_cat = mapped_category.replace('/', '_')
                     cap_path = CAPTURES_DIR / f"{timestamp}_{safe_cat}.jpg"
                     cv2.imwrite(str(cap_path), image)
-                    print(f"[자동 캡처 완료] 📷 {cap_path}")
+                    print(f"[자동 캡처 완료] {cap_path}")
 
-                    # 로봇 알림: 삐 소리 + LED 켜기 (유리병: 주황색 LED)
+                    # 로봇 알림 반응 (정상: LED만 무음, 경고/이물질: Beep 소리 + 빨간 LED)
                     led_spec = LED_MAP.get(mapped_category, ("off", "off"))
-                    hamster.beep()
+                    if mapped_category == "이물질/경고":
+                        print("[경고 작동] 잘못된 배출! 빨간색 LED + 경고 Beep 소리를 냅니다.")
+                        hamster.beep()
+                    else:
+                        print(f"[정상 작동] {mapped_category} LED 빛만 점등 (무음)")
+
                     set_robot_led(hamster, led_spec)
 
                     start_time = time.time()
