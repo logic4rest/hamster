@@ -1,5 +1,5 @@
 엑스배너: https://canva.link/7ysacp79v9o0zj2
-
+ppt: https://canva.link/xlx3rn9imihmi3i
 # 🐹 햄스터 로봇 AI 쓰레기 분리배출 스마트 감지 시스템 (v2.7)
 
 웹캠 카메라를 통해 **쓰레기(플라스틱/페트병, 캔, 종이, 종이팩)** 및 **경고 품목(유리병, 이물질/라벨/음식물)**을 실시간으로 감지하고, [Google 티처블 머신](https://teachablemachine.withgoogle.com) 모델과 **햄스터 로봇**의 6색 LED 및 부저 알림을 이용하여 분리배출을 안내하는 파이썬 프로그램입니다.
