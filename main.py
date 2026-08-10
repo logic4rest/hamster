@@ -1,9 +1,9 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (OpenCV + Keras 직접 실행 방식 v2.8.1 CP949 인코딩 안전 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (OpenCV + Keras 직접 실행 방식 v2.9 바탕화면 햄스터 새 저장 폴더 자동 생성)
 ===================================================================================================================
 - 정상 쓰레기 (플라스틱, 유리병, 캔, 종이, 종이팩) -> 지정 LED 점등 (무음 / 소리 없음)
 - 오배출 / 이물질 (라벨, 음식물, 얼음 등)          -> 빨간색 경고 LED + 경고 삐(Beep) 소리 출력!
-- 없음 / 신뢰도 < 0.8                            -> 대기 (LED OFF)
+- 자동 캡처 저장을 바탕화면 햄스터 폴더 내 날짜별 새로운 폴더(captures/YYYYMMDD_분리배출기록/)로 자동 생성하여 저장
 
 실행 방법:
     python main.py
@@ -31,9 +31,12 @@ from roboid import *
 MODEL_DIR   = os.path.join(os.path.dirname(__file__), "models")
 MODEL_PATH  = os.path.join(MODEL_DIR, "keras_model.h5")
 LABELS_PATH = os.path.join(MODEL_DIR, "labels.txt")
-CAPTURES_DIR = Path(__file__).parent / "captures"
-STATS_PATH   = Path(__file__).parent / "stats.json"
+PROJECT_ROOT = Path(__file__).parent
+STATS_PATH   = PROJECT_ROOT / "stats.json"
 
+# 바탕화면 햄스터 폴더 내에 날짜별 새로운 저장 폴더 자동 생성
+TODAY_STR    = time.strftime("%Y%m%d")
+CAPTURES_DIR = PROJECT_ROOT / "captures" / f"{TODAY_STR}_분리배출기록"
 CAPTURES_DIR.mkdir(parents=True, exist_ok=True)
 
 CONFIDENCE_THRESHOLD = 0.8   # 이 값 미만이면 폐기/대기 (없음 처리)
@@ -329,6 +332,7 @@ def main():
 
     stats = load_stats()
     print(f"[INFO] 누적 분리배출 통계: {stats}")
+    print(f"[INFO] 저장 폴더 경로: {CAPTURES_DIR}")
 
     print("[INFO] 햄스터 봇에 연결 중...")
     hamster = Hamster()
@@ -345,7 +349,8 @@ def main():
     countdown(cap, COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [AI 쓰레기통 스마트 감지 시스템 v2.8]")
+    print("  [AI 쓰레기통 스마트 감지 시스템 v2.9 DirectShow]")
+    print(f"  - 저장 경로: 바탕화면 > hamster > captures > {TODAY_STR}_분리배출기록")
     print("  - 정상 쓰레기 (플라스틱/유리/캔/종이/종이팩) -> 지정 LED 점등 (무음)")
     print("  - 잘못된 배출 / 이물질                       -> 빨간색 경고 LED + 경고 Beep 소리!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
@@ -392,12 +397,12 @@ def main():
                     stats["total"] += 1
                     save_stats(stats)
 
-                    # 확정 순간 자동 캡처
+                    # 확정 순간 날짜별 새 저장 폴더에 자동 캡처
                     timestamp = time.strftime("%Y%m%d_%H%M%S")
                     safe_cat = mapped_category.replace('/', '_')
                     cap_path = CAPTURES_DIR / f"{timestamp}_{safe_cat}.jpg"
                     cv2.imwrite(str(cap_path), frame)
-                    print(f"[자동 캡처 완료] {cap_path}")
+                    print(f"[새 폴더에 저장 완료] {cap_path}")
 
                     # 로봇 알림 반응 (정상: LED만 무음, 경고/이물질: Beep 소리 + 빨간 LED)
                     led_spec = LED_MAP.get(mapped_category, ("off", "off"))
