@@ -163,3 +163,6 @@
 [2026-08-19 23:59:48] [SYSTEM_START] AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)
 [2026-08-20 00:00:18] [SYSTEM_STOP] 프로그램 정상 종료
 [2026-08-20 00:01:25] [SYSTEM_START] AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)
+[2026-08-20 00:03:09] [WAYPOINT_SAVED] 슬롯 [1] '종이' 위치 저장 완료 (6단계 오차보정) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\1_종이.json"}
+[2026-08-20 00:03:56] [WAYPOINT_SAVED] 슬롯 [2] '종이팩' 위치 저장 완료 (6단계 오차보정) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\2_종이팩.json"}
+[2026-08-20 00:04:48] [WAYPOINT_SAVED] 슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (8단계 오차보정) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\3_플라스틱_페트병.json"}

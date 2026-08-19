@@ -1,11 +1,11 @@
 """
-쓰레기 4종 위치 번호별 저장 및 V6.3 정밀 역주행 복귀 학습 도구 (v4.8 키 누름 잔상 스킵 방지)
+쓰레기 4종 위치 번호별 저장 및 V6.3 정밀 역주행 복귀 학습 도구 (v6.1 수동 집게 키 매핑 에디션)
 ====================================================================================================
-4종 슬롯 매핑:
-  [1] 종이
-  [2] 종이팩
-  [3] 패트병(플라스틱)
-  [4] 캔
+키 조종 안내:
+  - 🕹️ 화살표 키(↑, ↓, ←, →): 로봇 이동 조종
+  - 🦾 Enter (엔터): 실물 집게 접기 / 닫기 (CLOSE)
+  - 🦾 Spacebar (스페이스바): 실물 집게 펼치기 / 열기 (OPEN)
+  - 🏁 Q 키 또는 ESC: 도착 완주 및 0.00cm 대칭 정밀 역주행 복귀 저장
 
 실행 방법:
     python tools/record_paper_path.py
@@ -107,20 +107,19 @@ def get_steer(kb):
 
 
 def record_slot_session(hamster, slot_num: str):
-    """지정된 슬롯 번호(1~4) 위치 화살표 키 조종 및 역주행 복귀 테스트"""
+    """지정된 슬롯 번호(1~4) 위치 키보드 조종 및 역주행 복귀 테스트"""
     slot_name = NUMBERED_SLOTS.get(slot_num, "종이")
 
     print(f"\n{BOLD}{'='*65}")
-    print(f"  🎮 슬롯 [{slot_num}] '{slot_name}' 위치 화살표 키 조종 학습")
+    print(f"  🎮 슬롯 [{slot_num}] '{slot_name}' 위치 키보드 조종 학습")
     print(f"{'='*65}{RESET}\n")
 
     print(f"  1. 햄스터를 {YELLOW}시작 위치(카메라 앞){RESET}에 놓아주세요.")
     print(f"  2. {CYAN}화살표 키(↑, ↓, ←, →){RESET}로 로봇을 조종하여 {YELLOW}[{slot_num}] '{slot_name}' 수거함 위치{RESET}까지 이동하세요.")
-    print(f"  3. 도착하면 {GREEN}Enter(엔터){RESET} 키를 누르면 슬롯 [{slot_num}]번에 즉시 저장됩니다.")
-    print(f"  4. 저장이 완료되면 V6.3 Zero-Slip 물리 엔진으로 로봇이 원래 시작 위치로 역주행 복귀합니다.\n")
+    print(f"  3. 🦾 {GREEN}Enter(엔터){RESET}: 집게 접기/닫기  |  🦾 {CYAN}Spacebar(스페이스바){RESET}: 집게 펼치기/열기")
+    print(f"  4. 도착하면 {GREEN}Q 키 또는 ESC{RESET}를 누르면 저장 후 시작 위치로 대칭 복귀합니다.\n")
 
-    # 💡 [핵심 버그 수정] 이전 콘솔 입력(1~4번 선택) 시 눌린 Enter 키 잔상 완벽 제거
-    while keyboard.is_pressed("enter") or keyboard.is_pressed("space"):
+    while keyboard.is_pressed("q") or keyboard.is_pressed("esc"):
         time.sleep(0.05)
     time.sleep(0.3)
 
@@ -132,30 +131,26 @@ def record_slot_session(hamster, slot_num: str):
     step_start_time = time.time()
     poll_interval = 0.04
 
-    print(f"{YELLOW}>>> 화살표 키로 [{slot_num}] '{slot_name}' 위치까지 조종하세요! (도착 시 Enter) <<<{RESET}\n")
+    print(f"{YELLOW}>>> Enter:집게접기 | Spacebar:집게펼치기 | Q 또는 ESC:도착완료저장 <<<{RESET}\n")
 
     try:
         while True:
-            if keyboard.is_pressed("esc") or keyboard.is_pressed("q"):
-                print(f"\n{YELLOW}[취소] 슬롯 [{slot_num}] 학습을 취소합니다.{RESET}")
-                hamster.stop()
-                hamster.leds("off", "off")
-                return None
-
-            if keyboard.is_pressed("enter") or keyboard.is_pressed("space"):
+            # 🏁 완료 종료 (Q, ESC 또는 F)
+            if keyboard.is_pressed("q") or keyboard.is_pressed("esc") or keyboard.is_pressed("f"):
                 dur = time.time() - step_start_time
                 if cur_left != 0 or cur_right != 0:
                     route_steps.append({"left": cur_left, "right": cur_right, "duration": dur})
-                if len(route_steps) > 0 or (time.time() - step_start_time > 1.0):
-                    break
+                break
 
-            if keyboard.is_pressed("o"):
-                control_gripper(hamster, "open")
-                print(f"{CLEAR_LINE}  🦾 집게 열기 (OPEN)", end="", flush=True)
-                time.sleep(0.15)
-            elif keyboard.is_pressed("c"):
+            # 💡 Enter = 집게 접기/닫기
+            if keyboard.is_pressed("enter"):
                 control_gripper(hamster, "close")
-                print(f"{CLEAR_LINE}  🦾 집게 닫기 (CLOSE)", end="", flush=True)
+                print(f"{CLEAR_LINE}  🦾 [집게 제어] Enter ➔ 집게 접기/닫기 (CLOSE)", end="", flush=True)
+                time.sleep(0.15)
+            # 💡 Spacebar = 집게 펼치기/열기
+            elif keyboard.is_pressed("space"):
+                control_gripper(hamster, "open")
+                print(f"{CLEAR_LINE}  🦾 [집게 제어] Spacebar ➔ 집게 펼치기/열기 (OPEN)", end="", flush=True)
                 time.sleep(0.15)
 
             new_left, new_right, label = get_steer(keyboard)
@@ -186,7 +181,7 @@ def record_slot_session(hamster, slot_num: str):
 
     print(f"\n\n{GREEN}[저장 완료] 슬롯 [{slot_num}] '{slot_name}' 위치가 성공적으로 저장되었습니다! ({len(trajectory)}단계){RESET}")
 
-    # 💡 V6.3 Zero-Slip 정밀 역주행 복귀
+    # V6.3 Zero-Slip 정밀 역주행 복귀
     print(f"\n{CYAN}>>> [Zero-Slip V6.3 복귀] 저장된 데이터의 역방향으로 시작 위치로 복귀합니다... <<<{RESET}")
     hamster.beep()
     time.sleep(0.5)
@@ -204,7 +199,7 @@ def record_slot_session(hamster, slot_num: str):
 
 def main():
     print(f"\n{BOLD}{'='*65}")
-    print("  🐹 쓰레기 4종 위치 번호별 지정 저장 도구 (v4.8 Key Debounce Fix)")
+    print("  🐹 쓰레기 4종 위치 번호별 지정 저장 도구 (v6.1 키보드 집게 매핑)")
     print(f"{'='*65}{RESET}\n")
 
     print("[INFO] 햄스터 로봇 연결 중...")
