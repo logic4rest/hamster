@@ -31,19 +31,29 @@ def capture_snapshot():
         temp_cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
         if temp_cap.isOpened():
             ret, frame = temp_cap.read()
-            if ret and frame is not None:
-                print(f"[INFO] C922 웹캠 연결 성공! (인덱스: {idx})")
+            if ret and frame is not None and frame.mean() > 5:
+                print(f"[INFO] C922 웹캠 연결 성공! (인덱스: {idx}, DirectShow)")
                 cap = temp_cap
                 break
         temp_cap.release()
+
+        temp_cap2 = cv2.VideoCapture(idx)
+        if temp_cap2.isOpened():
+            ret, frame = temp_cap2.read()
+            if ret and frame is not None and frame.mean() > 5:
+                print(f"[INFO] C922 웹캠 연결 성공! (인덱스: {idx})")
+                cap = temp_cap2
+                break
+        temp_cap2.release()
 
     if cap is None:
         print("[ERROR] C922 웹캠을 찾을 수 없습니다.")
         return None
 
-    # 카메라 화질 안정화 대기 (10프레임 무시)
-    for _ in range(10):
+    # 카메라 오토 익스포저 웜업 대기 (15프레임)
+    for _ in range(15):
         cap.read()
+        time.sleep(0.03)
 
     ret, frame = cap.read()
     cap.release()

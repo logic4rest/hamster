@@ -1,63 +1,38 @@
 {
   "slot": "3",
   "name": "플라스틱/페트병",
-  "date": "2026-08-19 21:31:47",
-  "trajectory_steps": 11,
+  "date": "2026-08-19 23:44:16",
+  "trajectory_steps": 6,
   "trajectory": [
     {
       "left": 35,
       "right": 35,
-      "duration": 5.3209357261657715
+      "duration": 5.470008850097656
     },
     {
       "left": 35,
       "right": -35,
-      "duration": 0.9506323337554932
+      "duration": 0.9889943599700928
+    },
+    {
+      "left": -35,
+      "right": 35,
+      "duration": 0.12305378913879395
     },
     {
       "left": 35,
       "right": 35,
-      "duration": 3.6599385738372803
-    },
-    {
-      "left": 16.0,
-      "right": 35,
-      "duration": 0.08263874053955078
-    },
-    {
-      "left": 35,
-      "right": 35,
-      "duration": 0.453981876373291
-    },
-    {
-      "left": 16.0,
-      "right": 35,
-      "duration": 0.12356424331665039
-    },
-    {
-      "left": 35,
-      "right": 35,
-      "duration": 0.16531896591186523
-    },
-    {
-      "left": 16.0,
-      "right": 35,
-      "duration": 0.08149886131286621
-    },
-    {
-      "left": 35,
-      "right": 35,
-      "duration": 10.514764547348022
+      "duration": 15.340301275253296
     },
     {
       "left": 35,
       "right": -35,
-      "duration": 0.7841348648071289
+      "duration": 0.8194448947906494
     },
     {
       "left": 35,
       "right": 35,
-      "duration": 5.068454742431641
+      "duration": 4.449560642242432
     }
   ]
 }

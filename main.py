@@ -648,6 +648,7 @@ def main():
         return
 
     print(f"[INFO] 카메라를 시작합니다 ({COUNTDOWN_SEC}초 카운트다운)...")
+    cv2.namedWindow("Waste Sorting Hamster", cv2.WINDOW_AUTOSIZE)
     countdown(cap, COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)

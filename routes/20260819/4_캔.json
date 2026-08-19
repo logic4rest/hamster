@@ -1,63 +1,33 @@
 {
   "slot": "4",
   "name": "캔",
-  "date": "2026-08-19 21:35:22",
-  "trajectory_steps": 11,
+  "date": "2026-08-19 23:45:25",
+  "trajectory_steps": 5,
   "trajectory": [
     {
       "left": 35,
       "right": 35,
-      "duration": 5.665715217590332
+      "duration": 5.256484031677246
     },
     {
       "left": 35,
       "right": -35,
-      "duration": 0.9895813465118408
+      "duration": 0.8226356506347656
     },
     {
       "left": 35,
       "right": 35,
-      "duration": 2.5193960666656494
-    },
-    {
-      "left": 16.0,
-      "right": 35,
-      "duration": 0.12329483032226562
-    },
-    {
-      "left": 35,
-      "right": 35,
-      "duration": 0.5001404285430908
-    },
-    {
-      "left": 16.0,
-      "right": 35,
-      "duration": 0.08240127563476562
-    },
-    {
-      "left": 35,
-      "right": 35,
-      "duration": 0.4150686264038086
-    },
-    {
-      "left": 16.0,
-      "right": 35,
-      "duration": 0.12349367141723633
-    },
-    {
-      "left": 35,
-      "right": 35,
-      "duration": 11.721611976623535
+      "duration": 9.657256364822388
     },
     {
       "left": -35,
       "right": 35,
-      "duration": 0.8311452865600586
+      "duration": 0.834082841873169
     },
     {
       "left": 35,
       "right": 35,
-      "duration": 3.5173988342285156
+      "duration": 3.607081890106201
     }
   ]
 }
