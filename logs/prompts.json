@@ -1,11 +1,5 @@
 [
   {
-    "timestamp": "2026-08-19 20:38:50",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 자율주행 실행 (1단계)",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-19 20:38:52",
     "event_type": "SORTING_COMPLETE",
     "message": "분리배출 및 복귀 완료: [1번 종이]",
@@ -645,6 +639,12 @@
   },
   {
     "timestamp": "2026-08-19 21:59:01",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 22:17:24",
     "event_type": "SYSTEM_START",
     "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)",
     "extra": {}
