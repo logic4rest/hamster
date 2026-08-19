@@ -1,14 +1,16 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v4.2 4종 번호 지정 슬롯 저장 & 자율주행 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v4.3 유리병 제거 & 4종 쓰레기 분리배출 최적화 에디션)
 ====================================================================================================
-4종 지정 슬롯:
-  [1] 종이
-  [2] 종이팩
-  [3] 패트병(플라스틱)
-  [4] 캔
+- 유리병 카테고리 완전히 제거 (플라스틱/페트병으로 통합)
+- 4종 지정 슬롯 매핑:
+  [1] 종이 (Yellow LED)
+  [2] 종이팩 (Cyan LED)
+  [3] 패트병/플라스틱 (Blue LED)
+  [4] 캔 (Green LED)
+  [경고] 이물질/라벨 (Red LED + Warning Beep)
 
 프로세스:
-1. 번호 선택 (1:종이, 2:종이팩, 3:패트병, 4:캔) 후 화살표 키로 위치 이동
+1. 시작 시 번호 선택 (1:종이, 2:종이팩, 3:패트병, 4:캔) 후 화살표 키로 위치 이동
 2. 도착 후 [Enter] 누르면 해당 번호 슬롯에 즉시 위치 저장 및 시작 위치 자동 복귀
 3. 바로 웹캠 카메라 AI 감지 시작
 4. 쓰레기 확인 시 해당 번호 슬롯에 저장된 위치로 자율 이동! (전방 센서 자동 우회 활성화)
@@ -58,32 +60,30 @@ REQUIRED_FRAMES            = 4     # 연속 4프레임 동일 시 최종 확정
 COUNTDOWN_SEC              = 2     # 시작 전 카운트다운 초
 PROXIMITY_OBSTACLE_THRESH  = 35    # 전방 장애물 감지 센서 기준값 (0~100)
 
-# ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
+# ── 카테고리 및 LED 매핑 (유리병 제거, 플라스틱/페트병으로 통합) ────────────
 CATEGORY_MAP = {
     "무색 페트병, 무색플라스틱": "플라스틱/페트병",
-    "유리병, 유리통": "유리병(별도 수거)",
+    "플라스틱": "플라스틱/페트병",
+    "무색 페트병": "플라스틱/페트병",
+    "패트병": "플라스틱/페트병",
+    "유리병, 유리통": "플라스틱/페트병",
+    "유리병": "플라스틱/페트병",
+    "유리통": "플라스틱/페트병",
+    "병": "플라스틱/페트병",
     "캔": "캔",
     "종이": "종이",
     "종이팩": "종이팩",
-    "없음": "없음",
-    # 하위 호환 및 키워드 매핑
-    "무색 페트병": "플라스틱/페트병",
-    "플라스틱": "플라스틱/페트병",
-    "패트병": "플라스틱/페트병",
-    "유리병": "유리병(별도 수거)",
-    "유리통": "유리병(별도 수거)",
-    "병": "유리병(별도 수거)",
+    "종이팩(우유팩)": "종이팩",
     "이물질": "이물질/경고",
     "라벨": "이물질/경고",
     "음식물": "이물질/경고",
     "얼음": "이물질/경고",
-    "종이팩(우유팩)": "종이팩",
+    "없음": "없음",
 }
 
-# 햄스터 로봇 LED 색상 매핑
+# 햄스터 로봇 LED 색상 매핑 (4종 전용 + 경고)
 LED_MAP = {
     "플라스틱/페트병": ("blue", "blue"),
-    "유리병(별도 수거)": (255, 100, 0, 255, 100, 0),  # 주황색 (Orange RGB)
     "캔": ("green", "green"),
     "종이": ("yellow", "yellow"),
     "종이팩": ("cyan", "cyan"),
@@ -93,7 +93,6 @@ LED_MAP = {
 # 화면 오버레이 BGR 색상 매핑
 COLOR_BGR_MAP = {
     "플라스틱/페트병": (255, 50, 0),     # 파란색 (BGR)
-    "유리병(별도 수거)": (0, 140, 255),    # 선명한 주황색 (BGR)
     "캔": (0, 220, 0),                 # 초록색
     "종이": (0, 220, 255),               # 노란색
     "종이팩": (255, 235, 0),              # 하늘색
@@ -104,7 +103,6 @@ COLOR_BGR_MAP = {
 # 올바른 분리배출 꿀팁 & 안내문
 RECYCLING_TIPS = {
     "플라스틱/페트병": "💡 [3번 패트병 슬롯 이동] 저장된 3번 위치로 이동하며 장애물 자동 우회!",
-    "유리병(별도 수거)": "⚠️ 집게 동작: 유리 전용 수거함(우측)으로 집어서 운반합니다.",
     "캔": "💡 [4번 캔 슬롯 이동] 저장된 4번 위치로 이동하며 장애물 자동 우회!",
     "종이": "💡 [1번 종이 슬롯 이동] 저장된 1번 위치로 이동하며 장애물 자동 우회!",
     "종이팩": "💡 [2번 종이팩 슬롯 이동] 저장된 2번 위치로 이동하며 장애물 자동 우회!",
@@ -151,7 +149,6 @@ def control_physical_gripper(hamster, action: str):
 def load_stats() -> dict:
     default_stats = {
         "플라스틱/페트병": 0,
-        "유리병(별도 수거)": 0,
         "캔": 0,
         "종이": 0,
         "종이팩": 0,
@@ -162,6 +159,8 @@ def load_stats() -> dict:
         try:
             with open(STATS_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
+                if "유리병(별도 수거)" in data:
+                    data["플라스틱/페트병"] = data.get("플라스틱/페트병", 0) + data.pop("유리병(별도 수거)")
                 default_stats.update(data)
         except Exception:
             pass
@@ -199,14 +198,12 @@ def map_raw_label_to_category(raw_label: str) -> str:
     if raw_label in CATEGORY_MAP:
         return CATEGORY_MAP[raw_label]
 
-    if any(k in raw_label for k in ["유리병", "유리통", "유리", "병"]):
-        return "유리병(별도 수거)"
+    if any(k in raw_label for k in ["유리병", "유리통", "유리", "병", "페트병", "패트병", "플라스틱"]):
+        return "플라스틱/페트병"
     elif "캔" in raw_label:
         return "캔"
     elif any(k in raw_label for k in ["이물질", "라벨", "음식물", "얼음"]):
         return "이물질/경고"
-    elif any(k in raw_label for k in ["페트병", "패트병", "플라스틱"]):
-        return "플라스틱/페트병"
     elif "종이팩" in raw_label or "우유팩" in raw_label:
         return "종이팩"
     elif "종이" in raw_label:
@@ -275,11 +272,9 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
             elif clean_category == "종이팩":
                 tag_text = "[확정] 종이팩 -> [2번 종이팩 슬롯] 자율주행!"
             elif clean_category == "플라스틱/페트병":
-                tag_text = "[확정] 페트병 -> [3번 패트병 슬롯] 자율주행!"
+                tag_text = "[확정] 페트병/플라스틱 -> [3번 패트병 슬롯] 자율주행!"
             elif clean_category == "캔":
                 tag_text = "[확정] 캔 -> [4번 캔 슬롯] 자율주행!"
-            elif clean_category == "유리병(별도 수거)":
-                tag_text = "[별도 배출] 유리병 -> 전용 수거함 이동!"
             else:
                 tag_text = f"[정상] {clean_category} -> 집게 수거함 이동!"
         else:
@@ -297,7 +292,7 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     frame = put_korean_text(frame, tip_text, (15, h - 38), font_size=15, color_bgr=text_color)
 
     # 6) 우측 상단 실시간 수거 통계 HUD
-    stats_str = f"[통계] 총 {stats['total']}개 | 플라스틱:{stats.get('플라스틱/페트병', 0)}  유리:{stats.get('유리병(별도 수거)', 0)}  캔:{stats.get('캔', 0)}  종이:{stats.get('종이', 0)}  종이팩:{stats.get('종이팩', 0)}  경고:{stats.get('이물질/경고', 0)}"
+    stats_str = f"[통계] 총 {stats['total']}개 | 플라스틱:{stats.get('플라스틱/페트병', 0)}  캔:{stats.get('캔', 0)}  종이:{stats.get('종이', 0)}  종이팩:{stats.get('종이팩', 0)}  경고:{stats.get('이물질/경고', 0)}"
     cv2.rectangle(frame, (0, 0), (w, 35), (20, 20, 20), -1)
     frame = put_korean_text(frame, stats_str, (10, 6), font_size=13, color_bgr=(255, 255, 255))
 
@@ -358,7 +353,7 @@ def initial_arrow_teach_session(hamster):
     """프로그램 시작 시 쓰레기 4종 지정 슬롯 위치 조종 학습"""
     print("\n" + "=" * 65)
     print("  🎮 [1단계] 쓰레기 4종 위치 번호별 지정 저장 세션")
-    print("  [1] 📄 종이    [2] 🩵 종이팩    [3] 🥤 패트병(플라스틱)    [4] 캔")
+    print("  [1] 📄 종이    [2] 🩵 종이팩    [3] 🥤 패트병(플라스틱)    [4] 🥫 캔")
     print("  - 저장하고자 하는 번호(1, 2, 3, 4)를 입력한 뒤 화살표 키로 조종하고 Enter!")
     print("  - 기존 보관된 4종 위치 데이터를 그대로 쓰시려면 지금 바로 Enter(또는 0)를 누르세요.")
     print("=" * 65)
@@ -430,7 +425,7 @@ def initial_arrow_teach_session(hamster):
         hamster.stop()
 
     if len(steps) > 0:
-        wp_info = waypoint_manager.save_slot("1", steps)  # 기본 1번 종이
+        wp_info = waypoint_manager.save_slot("1", steps)
         print(f"\n🎉 [위치 저장 완료!] 슬롯 [1] '종이' 위치 저장 ({wp_info['trajectory_steps']}단계 주행 기록)")
         print("↩️ 기억된 위치의 역방향으로 시작 위치로 자동 복귀합니다...")
         hamster.beep()
@@ -449,14 +444,13 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
     """4종 지정 슬롯 및 전방 센서 우회 자율주행 통합 운반 시퀀스"""
     waypoint_manager.log_event("SORTING_START", f"분리배출 확정 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
 
-    # 매핑: 카테고리 ➔ 번호 슬롯 지정
     slot_map = {
         "종이": "1",
         "종이팩": "2",
         "플라스틱/페트병": "3",
         "캔": "4"
     }
-    slot_id = slot_map.get(mapped_category, "1")
+    slot_id = slot_map.get(mapped_category, "3" if "플라스틱" in mapped_category else "1")
 
     def update_screen(status_msg: str, duration_sec: float):
         start = time.time()
@@ -487,11 +481,6 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
                 lambda msg, dur, i=idx: update_screen(msg or f"[{slot_id}번 {mapped_category}] 자율이동 중 [{i}/{len(named_route)}]", dur)
             )
 
-    elif mapped_category == "유리병(별도 수거)":
-        hamster.wheels(35, -35)
-        update_screen("운반 중: 우회전 (유리 전용 수거함)", 0.8)
-        drive_with_obstacle_avoidance(hamster, 35, 35, 0.7, lambda msg, dur: update_screen(msg or "운반 중: 전진 이동 (센서 우회 활성)", dur))
-
     elif mapped_category == "이물질/경고":
         waypoint_manager.log_event("WARNING_EVENT", "오배출/이물질 쓰레기 경고 발령")
         control_physical_gripper(hamster, "release")
@@ -517,7 +506,7 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
         hamster.wheels(-35, -35)
         update_screen("원래 위치로 후진 복귀 중...", 0.7)
 
-        if mapped_category in ["플라스틱/페트병", "유리병(별도 수거)"]:
+        if mapped_category == "플라스틱/페트병":
             hamster.wheels(35, -35)
             update_screen("시작 방향으로 회전 복귀", 0.6)
         elif mapped_category == "캔":
@@ -529,8 +518,25 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
     waypoint_manager.log_event("SORTING_COMPLETE", f"분리배출 및 복귀 완료: [{slot_id}번 {mapped_category}]")
 
 
+def countdown(cap: cv2.VideoCapture, seconds: int):
+    for i in range(seconds, 0, -1):
+        deadline = time.time() + 1.0
+        while time.time() < deadline:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                continue
+            frame = cv2.flip(frame, 1)
+            cv2.putText(
+                frame, str(i),
+                (frame.shape[1] // 2 - 40, frame.shape[0] // 2 + 40),
+                cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 0), 6, cv2.LINE_AA,
+            )
+            cv2.imshow("Waste Sorting Hamster", frame)
+            if cv2.waitKey(30) & 0xFF == 27:
+                return
+
+
 def open_camera():
-    """안전한 카메라 연결 초기화"""
     print("[INFO] 웹캠 카메라를 연결하는 중...")
     for target in [0, 1, 'usb0']:
         try:
@@ -547,12 +553,11 @@ def open_camera():
 
 
 def main():
-    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 지정 슬롯 스마트 자율주행 실행 (v4.2)")
+    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 지정 슬롯 스마트 자율주행 실행 (v4.3 유리병 제거)")
 
-    print(f"[INFO] 모델을 불러오는 중... ({MODEL_DIR})")
-    tmi = ai.TmImage()
-    tmi.load_model(MODEL_DIR)
-    print("[INFO] 모델 로드 완료!")
+    print("[INFO] 모델을 불러오는 중...")
+    model  = load_model(MODEL_DIR)
+    labels = load_labels(LABELS_PATH)
 
     stats = load_stats()
     print(f"[INFO] 누적 분리배출 통계: {stats}")
@@ -574,7 +579,7 @@ def main():
     cam.count_down(COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [2단계: AI 쓰레기 4종 감지 & 지정 슬롯 자율주행 시작]")
+    print("  [2단계: AI 쓰레기 4종 감지 & 지정 슬롯 자율주행 시작 (유리병 제거)]")
     print("  - [1] 종이 ➔ 1번 위치 이동")
     print("  - [2] 종이팩 ➔ 2번 위치 이동")
     print("  - [3] 패트병(플라스틱) ➔ 3번 위치 이동")
@@ -611,25 +616,20 @@ def main():
 
                 image = draw_hud_and_bbox(image, mapped_category, conf, consecutive_count, REQUIRED_FRAMES, stats)
 
-                # 4프레임 확정
                 if consecutive_count >= REQUIRED_FRAMES:
-                    # 통계 카운트 증가 & 저장
                     stats[mapped_category] = stats.get(mapped_category, 0) + 1
                     stats["total"] += 1
                     save_stats(stats)
 
-                    # 확정 순간 날짜별 파티셔닝 저장
                     timestamp = time.strftime("%Y%m%d_%H%M%S")
                     safe_cat = mapped_category.replace('/', '_')
                     cap_path = TODAY_CAPTURES_DIR / f"{timestamp}_{safe_cat}.jpg"
                     cv2.imwrite(str(cap_path), image)
                     waypoint_manager.log_event("CAPTURE_SAVED", f"이미지 자동 캡처 파티셔닝 저장: {cap_path.name}")
 
-                    # 1) 로봇 알림 LED 반응
                     led_spec = LED_MAP.get(mapped_category, ("off", "off"))
                     set_robot_led(hamster, led_spec)
 
-                    # 2) 실물 집게 & 4종 지정 슬롯 자율주행 모션 실행 (전방 센서 우회 주행 포함!)
                     operate_gripper_and_transport(hamster, cam, mapped_category, conf, stats)
 
                     set_robot_led(hamster, ("off", "off"))
