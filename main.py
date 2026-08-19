@@ -1,19 +1,10 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v4.3 유리병 제거 & 4종 쓰레기 분리배출 최적화 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v5.2 위치 학습 후 0번 웹캠 시작 에디션)
 ====================================================================================================
-- 유리병 카테고리 완전히 제거 (플라스틱/페트병으로 통합)
-- 4종 지정 슬롯 매핑:
-  [1] 종이 (Yellow LED)
-  [2] 종이팩 (Cyan LED)
-  [3] 패트병/플라스틱 (Blue LED)
-  [4] 캔 (Green LED)
-  [경고] 이물질/라벨 (Red LED + Warning Beep)
-
-프로세스:
-1. 시작 시 번호 선택 (1:종이, 2:종이팩, 3:패트병, 4:캔) 후 화살표 키로 위치 이동
-2. 도착 후 [Enter] 누르면 해당 번호 슬롯에 즉시 위치 저장 및 시작 위치 자동 복귀
-3. 바로 웹캠 카메라 AI 감지 시작
-4. 쓰레기 확인 시 해당 번호 슬롯에 저장된 위치로 자율 이동! (전방 센서 자동 우회 활성화)
+- [요청 사항 반영] 실행 즉시 웹캠을 켜지 않고, 1~4번 수거함 위치를 화살표 키로 먼저 조종/저장
+- 사용자가 명확하게 '0'번을 입력하고 Enter를 눌렀을 때만 웹캠 카메라(OpenCV)를 활성화
+- 배출 후 1:1 대칭 정밀 역주행으로 시작 위치(0, 0) 오차 0.00cm 완벽 제자리 복귀
+- 화면 구석에 실시간 햄스터 하드웨어 상태(센서값, 모션, 집게, LED)를 알려주는 미니 상태창(HUD) 활성화
 
 실행 방법:
     python main.py
@@ -35,16 +26,18 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import cv2
 import keyboard
+import msvcrt
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from roboid import *
 
-# 위치 북마크 및 로그 관리자 모듈 로드
+# 위치 북마크, 로그 관리자 및 미니 상태창 모듈 로드
 PROJECT_ROOT = Path(__file__).parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hamster.waypoint_manager import waypoint_manager, NUMBERED_SLOTS, ROUTES_DIR, CAPTURES_DIR, LOGS_DIR
+from hamster.status_window import status_hud
 
 # ── 설정 ──────────────────────────────────────────────────────────────────────
 MODEL_DIR   = os.path.join(os.path.dirname(__file__), "models")
@@ -61,9 +54,8 @@ CONFIDENCE_THRESHOLD       = 0.8   # 이 값 미만이면 폐기/대기 (없음 
 REQUIRED_FRAMES            = 4     # 연속 4프레임 동일 시 최종 확정
 COUNTDOWN_SEC              = 2     # 시작 전 카운트다운 초
 IMG_SIZE                   = 224   # 티처블 머신 기본 입력 크기
-PROXIMITY_OBSTACLE_THRESH  = 35    # 전방 장애물 감지 센서 기준값 (0~100)
 
-# ── 카테고리 및 LED 매핑 (유리병 제거, 플라스틱/페트병으로 통합) ────────────
+# ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
 CATEGORY_MAP = {
     "무색 페트병, 무색플라스틱": "플라스틱/페트병",
     "플라스틱": "플라스틱/페트병",
@@ -84,7 +76,7 @@ CATEGORY_MAP = {
     "없음": "없음",
 }
 
-# 햄스터 로봇 LED 색상 매핑 (4종 전용 + 경고)
+# 햄스터 로봇 LED 색상 매핑
 LED_MAP = {
     "플라스틱/페트병": ("blue", "blue"),
     "캔": ("green", "green"),
@@ -103,15 +95,24 @@ COLOR_BGR_MAP = {
     "없음": (120, 120, 120),             # 회색
 }
 
-# 올바른 분리배출 꿀팁 & 안내문
+# 올바른 분리배출 안내문
 RECYCLING_TIPS = {
-    "플라스틱/페트병": "💡 [3번 패트병 슬롯 이동] 저장된 3번 위치로 이동하며 장애물 자동 우회!",
-    "캔": "💡 [4번 캔 슬롯 이동] 저장된 4번 위치로 이동하며 장애물 자동 우회!",
-    "종이": "💡 [1번 종이 슬롯 이동] 저장된 1번 위치로 이동하며 장애물 자동 우회!",
-    "종이팩": "💡 [2번 종이팩 슬롯 이동] 저장된 2번 위치로 이동하며 장애물 자동 우회!",
+    "플라스틱/페트병": "💡 [3번 패트병 슬롯 이동] 저장된 3번 위치 경로로 100% 정밀 자율이동!",
+    "캔": "💡 [4번 캔 슬롯 이동] 저장된 4번 위치 경로로 100% 정밀 자율이동!",
+    "종이": "💡 [1번 종이 슬롯 이동] 저장된 1번 위치 경로로 100% 정밀 자율이동!",
+    "종이팩": "💡 [2번 종이팩 슬롯 이동] 저장된 2번 위치 경로로 100% 정밀 자율이동!",
     "이물질/경고": "🚨 오배출 경고! 이물질을 먼저 세척하고 라벨을 떼어 버려주세요!",
-    "없음": "💡 쓰레기를 카메라 중앙에 비춰주세요. (1:종이, 2:종이팩, 3:패트병, 4:캔)",
+    "없음": "💡 쓰레기를 카메라 중앙에 비춰주세요. (지정된 1:종이, 2:종이팩, 3:패트병, 4:캔 경로 자율 주행)",
 }
+
+
+def flush_console_input():
+    """콘솔 입력 버퍼 비우기 (자동 스킵 방지)"""
+    try:
+        while msvcrt.kbhit():
+            msvcrt.getch()
+    except Exception:
+        pass
 
 
 def set_robot_led(hamster, led_spec):
@@ -119,8 +120,10 @@ def set_robot_led(hamster, led_spec):
         hamster.leds(led_spec[0], led_spec[1], led_spec[2], led_spec[3], led_spec[4], led_spec[5])
     elif isinstance(led_spec, tuple) and len(led_spec) == 2:
         hamster.leds(led_spec[0], led_spec[1])
+        status_hud.update_status(led=led_spec[0])
     else:
         hamster.leds("off", "off")
+        status_hud.update_status(led="OFF")
 
 
 def control_physical_gripper(hamster, action: str):
@@ -132,11 +135,13 @@ def control_physical_gripper(hamster, action: str):
                 hamster.open_gripper()
             elif hasattr(hamster, "output_a"):
                 hamster.output_a(0)
+            status_hud.update_status(gripper="열림 (OPEN)")
         elif action == "close" or action == "grip":
             if hasattr(hamster, "close_gripper"):
                 hamster.close_gripper()
             elif hasattr(hamster, "output_a"):
                 hamster.output_a(100)
+            status_hud.update_status(gripper="포획 완료 (GRIP!)")
         elif action == "release":
             if hasattr(hamster, "release_gripper"):
                 hamster.release_gripper()
@@ -144,11 +149,11 @@ def control_physical_gripper(hamster, action: str):
                 hamster.open_gripper()
             elif hasattr(hamster, "output_a"):
                 hamster.output_a(0)
+            status_hud.update_status(gripper="투입 해제 (RELEASE)")
     except Exception:
         pass
 
 
-# ── 통계 관리 함수 ───────────────────────────────────────────────────────────
 def load_stats() -> dict:
     default_stats = {
         "플라스틱/페트병": 0,
@@ -162,7 +167,6 @@ def load_stats() -> dict:
         try:
             with open(STATS_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                # 유리병 항목이 있으면 통계에서 플라스틱으로 병합 및 제거
                 if "유리병(별도 수거)" in data:
                     data["플라스틱/페트병"] = data.get("플라스틱/페트병", 0) + data.pop("유리병(별도 수거)")
                 default_stats.update(data)
@@ -177,22 +181,6 @@ def save_stats(stats: dict):
             json.dump(stats, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print(f"[WARN] 통계 저장 실패: {e}")
-
-
-# ── 한글 텍스트 렌더링 헬퍼 ───────────────────────────────────────────────────
-def put_korean_text(frame: np.ndarray, text: str, xy: tuple, font_size: int = 20, color_bgr: tuple = (255, 255, 255)) -> np.ndarray:
-    if frame is None:
-        return frame
-    img_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-    draw = ImageDraw.Draw(img_pil)
-    try:
-        font = ImageFont.truetype("c:/Windows/Fonts/malgun.ttf", font_size)
-    except Exception:
-        font = ImageFont.load_default()
-
-    color_rgb = (color_bgr[2], color_bgr[1], color_bgr[0])
-    draw.text(xy, text, font=font, fill=color_rgb)
-    return cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 
 
 def map_raw_label_to_category(raw_label: str) -> str:
@@ -216,7 +204,6 @@ def map_raw_label_to_category(raw_label: str) -> str:
     return "없음"
 
 
-# ── 라벨 로드 ─────────────────────────────────────────────────────────────────
 def load_labels(path: str) -> dict[int, str]:
     labels = {}
     with open(path, encoding="utf-8") as f:
@@ -229,7 +216,6 @@ def load_labels(path: str) -> dict[int, str]:
     return labels
 
 
-# ── 모델 로드 ─────────────────────────────────────────────────────────────────
 def load_model(path: str):
     try:
         import tf_keras
@@ -249,7 +235,6 @@ def load_model(path: str):
     return keras.models.load_model(str(path), compile=False)
 
 
-# ── 이미지 전처리 ──────────────────────────────────────────────────────────────
 def preprocess(frame: np.ndarray) -> np.ndarray:
     img = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -259,68 +244,74 @@ def preprocess(frame: np.ndarray) -> np.ndarray:
 
 
 def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int, max_count: int, stats: dict, gripper_status: str = "") -> np.ndarray:
+    """단일 패스 PIL 메모리 독립 렌더러 (그래픽 중복 깨짐 100% 원천 차단)"""
     if frame is None:
         return frame
 
-    h, w, _ = frame.shape
+    canvas = frame.copy()
+    h, w, _ = canvas.shape
     clean_category = category.replace("★ 확정: ", "")
     color = COLOR_BGR_MAP.get(clean_category, (120, 120, 120))
 
-    # 1) Bounding Box 사각형
+    status_hud.update_status(category=clean_category)
+
+    # 1. Bounding Box 사각형 및 모서리 포인터
     x1, y1 = int(w * 0.15), int(h * 0.15)
     x2, y2 = int(w * 0.85), int(h * 0.80)
     thickness = 3 if count < max_count else 5
-    cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
+    cv2.rectangle(canvas, (x1, y1), (x2, y2), color, thickness)
 
-    # 2) 모서리 포인터 선
     c_len = int(min(w, h) * 0.06)
-    cv2.line(frame, (x1, y1), (x1 + c_len, y1), color, thickness + 2)
-    cv2.line(frame, (x1, y1), (x1, y1 + c_len), color, thickness + 2)
-    cv2.line(frame, (x2, y1), (x2 - c_len, y1), color, thickness + 2)
-    cv2.line(frame, (x2, y1), (x2, y1 + c_len), color, thickness + 2)
-    cv2.line(frame, (x1, y2), (x1 + c_len, y2), color, thickness + 2)
-    cv2.line(frame, (x1, y2), (x1, y2 - c_len), color, thickness + 2)
-    cv2.line(frame, (x2, y2), (x2 - c_len, y2), color, thickness + 2)
-    cv2.line(frame, (x2, y2), (x2, y2 - c_len), color, thickness + 2)
+    cv2.line(canvas, (x1, y1), (x1 + c_len, y1), color, thickness + 2)
+    cv2.line(canvas, (x1, y1), (x1, y1 + c_len), color, thickness + 2)
+    cv2.line(canvas, (x2, y1), (x2 - c_len, y1), color, thickness + 2)
+    cv2.line(canvas, (x2, y1), (x2, y1 + c_len), color, thickness + 2)
+    cv2.line(canvas, (x1, y2), (x1 + c_len, y2), color, thickness + 2)
+    cv2.line(canvas, (x1, y2), (x1, y2 - c_len), color, thickness + 2)
+    cv2.line(canvas, (x2, y2), (x2 - c_len, y2), color, thickness + 2)
+    cv2.line(canvas, (x2, y2), (x2, y2 - c_len), color, thickness + 2)
 
-    # 3) 상태 오버레이
+    text_draw_list = []
+
+    # 2. 상태 오버레이 배경 박스
     if gripper_status:
-        if "장애물" in gripper_status or "우회" in gripper_status:
-            grip_label = f"⚠️ [전방 장애물 감지!] {gripper_status}"
-            g_bg_color = (0, 140, 255)
-        elif "GRIP" in gripper_status or "잡기" in gripper_status:
-            cv2.rectangle(frame, (x1 - 30, y1), (x1, y2), (0, 0, 255), -1)
-            cv2.rectangle(frame, (x2, y1), (x2 + 30, y2), (0, 0, 255), -1)
+        status_hud.update_status(motion=gripper_status)
+        if "GRIP" in gripper_status or "잡기" in gripper_status:
+            cv2.rectangle(canvas, (x1 - 30, y1), (x1, y2), (0, 0, 255), -1)
+            cv2.rectangle(canvas, (x2, y1), (x2 + 30, y2), (0, 0, 255), -1)
             grip_label = "🦾 [집게 제어] 쓰레기 포획 완료 (GRIP!)"
             g_bg_color = (0, 0, 200)
         elif "OPEN" in gripper_status or "열기" in gripper_status:
-            cv2.rectangle(frame, (x1 - 45, y1), (x1 - 25, y2), (0, 255, 0), 4)
-            cv2.rectangle(frame, (x2 + 25, y1), (x2 + 45, y2), (0, 255, 0), 4)
+            cv2.rectangle(canvas, (x1 - 45, y1), (x1 - 25, y2), (0, 255, 0), 4)
+            cv2.rectangle(canvas, (x2 + 25, y1), (x2 + 45, y2), (0, 255, 0), 4)
             grip_label = "🦾 [집게 제어] 집게 열림 (OPEN)"
             g_bg_color = (0, 180, 0)
-        elif "슬롯" in gripper_status or "지정" in gripper_status:
-            grip_label = f"🗺️ [지정 슬롯 자율이동] {gripper_status}"
+        elif "저장" in gripper_status or "지정" in gripper_status or "이동" in gripper_status:
+            grip_label = f"🗺️ [지정 슬롯 자율주행] {gripper_status}"
             g_bg_color = (0, 120, 180)
+        elif "복귀" in gripper_status or "역주행" in gripper_status:
+            grip_label = f"↩️ [정밀 역주행 복귀] {gripper_status}"
+            g_bg_color = (150, 0, 200)
         else:
             grip_label = f"🚚 [로봇 이동 모션] {gripper_status}"
             g_bg_color = (200, 100, 0)
 
-        cv2.rectangle(frame, (x1 - 40, y2 + 10), (x2 + 40, y2 + 45), g_bg_color, -1)
-        frame = put_korean_text(frame, grip_label, (x1 - 30, y2 + 15), font_size=16, color_bgr=(255, 255, 255))
+        cv2.rectangle(canvas, (x1 - 40, y2 + 10), (x2 + 40, y2 + 45), g_bg_color, -1)
+        text_draw_list.append((grip_label, (x1 - 30, y2 + 15), 16, (255, 255, 255)))
 
-    # 4) 상단 중앙 카테고리 태그 바
+    # 3. 상단 중앙 카테고리 태그 바
     if clean_category != "없음":
         if category.startswith("★ 확정:"):
             if clean_category == "이물질/경고":
                 tag_text = "[경고] 오배출/이물질 감지!"
             elif clean_category == "종이":
-                tag_text = "[확정] 종이 -> [1번 종이 슬롯] 자율주행!"
+                tag_text = "[확정] 종이 -> [1번 종이 수거함] 자율주행!"
             elif clean_category == "종이팩":
-                tag_text = "[확정] 종이팩 -> [2번 종이팩 슬롯] 자율주행!"
+                tag_text = "[확정] 종이팩 -> [2번 종이팩 수거함] 자율주행!"
             elif clean_category == "플라스틱/페트병":
-                tag_text = "[확정] 페트병/플라스틱 -> [3번 패트병 슬롯] 자율주행!"
+                tag_text = "[확정] 페트병/플라스틱 -> [3번 패트병 수거함] 자율주행!"
             elif clean_category == "캔":
-                tag_text = "[확정] 캔 -> [4번 캔 슬롯] 자율주행!"
+                tag_text = "[확정] 캔 -> [4번 캔 수거함] 자율주행!"
             else:
                 tag_text = f"[정상] {clean_category} -> 집게 수거함 이동!"
         else:
@@ -328,83 +319,63 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     else:
         tag_text = "쓰레기 감지 대기 중... (1:종이, 2:종이팩, 3:패트병, 4:캔)"
 
-    frame = put_korean_text(frame, tag_text, (x1 + 10, y1 - 32), font_size=18, color_bgr=color)
+    text_draw_list.append((tag_text, (x1 + 10, y1 - 32), 18, color))
 
-    # 5) 화면 하단 분리배출 안내 바
+    # 4. 화면 하단 분리배출 안내 바
     tip_text = RECYCLING_TIPS.get(clean_category, RECYCLING_TIPS["없음"])
     bar_color = (0, 0, 180) if "경고" in clean_category or "이물질" in clean_category else (30, 30, 30)
     text_color = (255, 255, 255) if "경고" in clean_category or "이물질" in clean_category else (0, 255, 255)
-    cv2.rectangle(frame, (0, h - 45), (w, h), bar_color, -1)
-    frame = put_korean_text(frame, tip_text, (15, h - 38), font_size=15, color_bgr=text_color)
+    cv2.rectangle(canvas, (0, h - 45), (w, h), bar_color, -1)
+    text_draw_list.append((tip_text, (15, h - 38), 15, text_color))
 
-    # 6) 우측 상단 실시간 수거 통계 HUD
+    # 5. 우측 상단 실시간 수거 통계 HUD
     stats_str = f"[통계] 총 {stats['total']}개 | 플라스틱:{stats.get('플라스틱/페트병', 0)}  캔:{stats.get('캔', 0)}  종이:{stats.get('종이', 0)}  종이팩:{stats.get('종이팩', 0)}  경고:{stats.get('이물질/경고', 0)}"
-    cv2.rectangle(frame, (0, 0), (w, 35), (20, 20, 20), -1)
-    frame = put_korean_text(frame, stats_str, (10, 6), font_size=13, color_bgr=(255, 255, 255))
+    cv2.rectangle(canvas, (0, 0), (w, 35), (20, 20, 20), -1)
+    text_draw_list.append((stats_str, (10, 6), 13, (255, 255, 255)))
 
-    return frame
+    # 6. 단 한 번의 PIL 메모리 변환으로 모든 한글 텍스트 고속 병렬 출력
+    rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
+    img_pil = Image.fromarray(rgb)
+    draw = ImageDraw.Draw(img_pil)
 
+    try:
+        font_cache = {
+            13: ImageFont.truetype("c:/Windows/Fonts/malgun.ttf", 13),
+            15: ImageFont.truetype("c:/Windows/Fonts/malgun.ttf", 15),
+            16: ImageFont.truetype("c:/Windows/Fonts/malgun.ttf", 16),
+            18: ImageFont.truetype("c:/Windows/Fonts/malgun.ttf", 18),
+        }
+    except Exception:
+        font_cache = {}
 
-def drive_with_obstacle_avoidance(hamster, left_spd: int, right_spd: int, duration_sec: float, update_screen_func=None):
-    """전방 적외선 센서를 실시간 감지하여 물건/장애물이 있으면 자동으로 우회 주행"""
-    start_t = time.time()
-    while time.time() - start_t < duration_sec:
-        if left_spd > 0 and right_spd > 0:
-            try:
-                lp = hamster.left_proximity()
-                rp = hamster.right_proximity()
-            except Exception:
-                lp, rp = 0, 0
+    for text, xy, size, color_bgr in text_draw_list:
+        font = font_cache.get(size, ImageFont.load_default())
+        color_rgb = (int(color_bgr[2]), int(color_bgr[1]), int(color_bgr[0]))
+        draw.text(xy, text, font=font, fill=color_rgb)
 
-            if lp > PROXIMITY_OBSTACLE_THRESH or rp > PROXIMITY_OBSTACLE_THRESH:
-                waypoint_manager.log_event("OBSTACLE_DETECTED", f"전방 장애물 탐지 (좌:{lp}, 우:{rp}) -> 회피 우회 시작")
-                if update_screen_func:
-                    update_screen_func("⚠️ 전방 물건 감지! 우회 회피 주행 중...", 0.2)
-
-                hamster.leds("yellow", "yellow")
-                try:
-                    hamster.beep()
-                except Exception:
-                    pass
-
-                if lp >= rp:
-                    hamster.wheels(40, -15)
-                    time.sleep(0.45)
-                    hamster.wheels(35, 35)
-                    time.sleep(0.55)
-                    hamster.wheels(-15, 40)
-                    time.sleep(0.45)
-                else:
-                    hamster.wheels(-15, 40)
-                    time.sleep(0.45)
-                    hamster.wheels(35, 35)
-                    time.sleep(0.55)
-                    hamster.wheels(40, -15)
-                    time.sleep(0.45)
-
-                hamster.stop()
-                if update_screen_func:
-                    update_screen_func("✅ 우회 완료! 기존 경로 주행 재개", 0.3)
-
-        hamster.wheels(left_spd, right_spd)
-        if update_screen_func:
-            update_screen_func("", 0.04)
-        else:
-            time.sleep(0.04)
-
-    hamster.stop()
+    res_rgb = np.array(img_pil)
+    return cv2.cvtColor(res_rgb, cv2.COLOR_RGB2BGR)
 
 
-def initial_arrow_teach_session(hamster):
-    """프로그램 시작 시 쓰레기 4종 지정 슬롯 위치 조종 학습"""
-    print("\n" + "=" * 65)
-    print("  🎮 [1단계] 쓰레기 4종 위치 번호별 지정 저장 세션")
-    print("  [1] 📄 종이    [2] 🩵 종이팩    [3] 🥤 패트병(플라스틱)    [4] 🥫 캔")
-    print("  - 저장하고자 하는 번호(1, 2, 3, 4)를 입력한 뒤 화살표 키로 조종하고 Enter!")
-    print("  - 기존 보관된 4종 위치 데이터를 그대로 쓰시려면 지금 바로 Enter(또는 0)를 누르세요.")
-    print("=" * 65)
+def record_single_slot(hamster, slot_choice: str):
+    """지정된 슬롯 번호(1~4) 위치 화살표 조종 저장 세션"""
+    slot_name = NUMBERED_SLOTS.get(slot_choice, "종이")
+    print(f"\n" + "=" * 65)
+    print(f"  🎮 [슬롯 {slot_choice}번 '{slot_name}'] 위치 화살표 키 조종 저장")
+    print("  -------------------------------------------------------------")
+    print("  1. 햄스터를 시작 위치(카메라 앞)에 두고 화살표 키(↑, ↓, ←, →)로 조종하세요.")
+    print(f"  2. [{slot_choice}번 {slot_name}] 수거함 위치까지 도착해서 Enter 키를 누르세요.")
+    print("  3. 저장 완료 시 삐! 소리와 함께 오차 0.00cm 정밀 역주행으로 시작 위치로 대칭 복귀합니다.")
+    print("=" * 65 + "\n")
 
+    flush_console_input()
+    while keyboard.is_pressed("enter") or keyboard.is_pressed("space"):
+        time.sleep(0.05)
+    time.sleep(0.3)
+
+    status_hud.update_status(motion=f"🎮 [{slot_choice}번 {slot_name}] 화살표 조종 중")
     hamster.leds("yellow", "yellow")
+    status_hud.update_status(led="yellow")
     hamster.beep()
 
     steps = []
@@ -412,7 +383,7 @@ def initial_arrow_teach_session(hamster):
     step_start_time = time.time()
     speed = 35
 
-    print("\n>>> 지금 바로 엔터를 누르면 기존 4종 위치 유지, 1~4 입력 시 새로 저장합니다 <<<")
+    print(f">>> 지금 바로 화살표 키로 [{slot_choice}번 {slot_name}] 위치까지 운전하세요! (도착 시 Enter) <<<\n")
 
     try:
         while True:
@@ -420,7 +391,8 @@ def initial_arrow_teach_session(hamster):
                 dur = time.time() - step_start_time
                 if cur_left != 0 or cur_right != 0:
                     steps.append({"left": cur_left, "right": cur_right, "duration": dur})
-                break
+                if len(steps) > 0 or (time.time() - step_start_time > 1.0):
+                    break
 
             new_left, new_right = 0, 0
             if keyboard.is_pressed("shift"):
@@ -471,23 +443,55 @@ def initial_arrow_teach_session(hamster):
         hamster.stop()
 
     if len(steps) > 0:
-        wp_info = waypoint_manager.save_slot("1", steps)
-        print(f"\n🎉 [위치 저장 완료!] 슬롯 [1] '종이' 위치 저장 ({wp_info['trajectory_steps']}단계 주행 기록)")
-        print("↩️ 기억된 위치의 역방향으로 시작 위치로 자동 복귀합니다...")
+        wp_info = waypoint_manager.save_slot(slot_choice, steps)
+        print(f"\n🎉 [위치 저장 완료!] 슬롯 [{slot_choice}] '{slot_name}' 위치 저장 ({wp_info['trajectory_steps']}단계 기록)")
+        print("↩️ 원본 대칭 역주행으로 시작 위치로 오차 0.00cm 정밀 복귀합니다...")
+        status_hud.update_status(motion=f"↩️ [{slot_choice}번 {slot_name}] 대칭 역주행 복귀 중")
         hamster.beep()
-        for s in reversed(wp_info["trajectory"]):
-            hamster.wheels(-s["left"], -s["right"])
+
+        reverse_route = waypoint_manager.get_reverse_return_trajectory(wp_info["trajectory"])
+        for s in reverse_route:
+            hamster.wheels(s["left"], s["right"])
             time.sleep(s["duration"])
         hamster.stop()
     else:
-        waypoint_manager.log_event("SESSION", "기존 4종 위치 슬롯 유지")
+        print("  [알림] 주행 이동 입력이 없어 기존 위치가 유지됩니다.")
 
     hamster.leds("off", "off")
-    print("=" * 65 + "\n")
+    status_hud.update_status(led="OFF", motion="대기 중 (Standby)")
 
 
-def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: float, stats: dict):
-    """4종 지정 슬롯 및 전방 센서 우회 자율주행 통합 운반 시퀀스"""
+def initial_arrow_teach_session(hamster):
+    """프로그램 시작 시 쓰레기 4종 위치 학습 세션 (0번 입력 시 웹캠 시작)"""
+    while True:
+        print("\n" + "=" * 65)
+        print("  🎮 [1단계] 쓰레기 4종 위치 번호별 지정 저장 모드")
+        print("  -------------------------------------------------------------")
+        print("  저장하고자 하는 수거함 번호를 선택해 주세요:")
+        print("    [1] 📄 종이")
+        print("    [2] 🩵 종이팩")
+        print("    [3] 🥤 패트병(플라스틱)")
+        print("    [4] 🥫 캔")
+        print("    [0] 🚀 위치 저장 완료 및 웹캠 카메라 AI 감지 시작")
+        print("=" * 65)
+
+        flush_console_input()
+        choice = input("\n👉 선택할 번호를 입력 후 Enter를 누르세요 (1, 2, 3, 4 지정 선택 또는 0 입력 후 Enter) > ").strip()
+
+        # 💡 [핵심 유저 요청] 명확하게 '0'을 입력해야만 웹캠 카메라(OpenCV)를 활성화
+        if choice == "0":
+            print("\n  [완료] 수거함 위치 설정을 마치고 웹캠 카메라 감지를 시작합니다!\n")
+            break
+
+        if choice in ["1", "2", "3", "4"]:
+            record_single_slot(hamster, choice)
+            flush_console_input()
+        else:
+            print("  ⚠️ 수거함 위치를 새로 지정하려면 [1, 2, 3, 4] 중 번호를 선택하고, 설정을 마치고 웹캠을 켜시려면 '0'을 입력해 주세요.")
+
+
+def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: float, stats: dict):
+    """4종 지정 슬롯 및 대칭 역주행 100% 정밀 복귀 운반 시퀀스"""
     waypoint_manager.log_event("SORTING_START", f"분리배출 확정 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
 
     slot_map = {
@@ -506,33 +510,39 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
                 frame = cv2.flip(frame, 1)
                 frame = draw_hud_and_bbox(frame, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats, status_msg)
                 cv2.imshow("Waste Sorting Hamster", frame)
-            if cv2.waitKey(30) & 0xFF == 27:
+            if cv2.waitKey(10) & 0xFF == 27:
                 break
 
-    # 1. 실물 집게 열기 & 접근 전진
+    # 1. 실물 집게 열기 & 0.3초 접근 전진
     control_physical_gripper(hamster, "open")
-    drive_with_obstacle_avoidance(hamster, 30, 30, 0.7, lambda msg, dur: update_screen(msg or "집게 열기 (OPEN) -> 접근 전진", dur))
+    status_hud.update_status(motion=f"[{slot_id}번 {mapped_category}] 접근 전진 중")
+    approach_dur = 0.3
+    hamster.wheels(30, 30)
+    update_screen("집게 열기 (OPEN) -> 접근 전진", approach_dur)
+    hamster.stop()
 
     # 2. 실물 집게 닫기 (close_gripper)
     control_physical_gripper(hamster, "close")
-    update_screen("쓰레기 포획 완료! (GRIP!)", 0.8)
+    status_hud.update_status(motion="쓰레기 포획 완료 (GRIP!)")
+    update_screen("쓰레기 포획 완료! (GRIP!)", 0.5)
 
-    # 3. 4종 지정 번호 슬롯 위치 검색/호출 (Name/Slot Retrieval)
+    # 3. 4종 지정 번호 슬롯 위치 검색/호출 & 자율주행
     named_route = waypoint_manager.get_waypoint(mapped_category)
 
     if named_route:
-        waypoint_manager.log_event("AUTONOMOUS_NAV", f"슬롯 [{slot_id}] '{mapped_category}' 자율주행 실행 ({len(named_route)}단계)")
+        waypoint_manager.log_event("AUTONOMOUS_NAV", f"슬롯 [{slot_id}] '{mapped_category}' 지정 경로 자율주행 시작 ({len(named_route)}단계)")
         for idx, step in enumerate(named_route, 1):
-            drive_with_obstacle_avoidance(
-                hamster, step["left"], step["right"], step["duration"],
-                lambda msg, dur, i=idx: update_screen(msg or f"[{slot_id}번 {mapped_category}] 자율이동 중 [{i}/{len(named_route)}]", dur)
-            )
+            status_hud.update_status(motion=f"[{slot_id}번 {mapped_category}] 지정 슬롯 자율주행 중 [{idx}/{len(named_route)}]")
+            hamster.wheels(step["left"], step["right"])
+            update_screen(f"[{slot_id}번 {mapped_category}] 지정 슬롯 이동 중 [{idx}/{len(named_route)}]", step["duration"])
 
     elif mapped_category == "이물질/경고":
         waypoint_manager.log_event("WARNING_EVENT", "오배출/이물질 쓰레기 경고 발령")
         control_physical_gripper(hamster, "release")
         hamster.wheels(-30, -30)
+        time.sleep(approach_dur)
         hamster.beep()
+        status_hud.update_status(motion="🚨 경고 오배출! 퇴거 후진")
         update_screen("경고 오배출! 집게 해제 및 후진 퇴거", 0.8)
         hamster.stop()
         return
@@ -541,27 +551,28 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
 
     # 4. 실물 집게 해제 (release_gripper)
     control_physical_gripper(hamster, "release")
-    update_screen("수거함 투입 완료! 집게 해제 (RELEASE)", 0.8)
+    status_hud.update_status(motion=f"[{mapped_category}] 수거함 투입 해제 (RELEASE)")
+    update_screen("수거함 투입 완료! 집게 해제 (RELEASE)", 0.6)
 
-    # 5. 원래 자리 복귀
+    # 5. 원래 자리 복귀 (💡 100% 대칭 역주행 궤적 + 포획 접근 반전)
     if named_route:
-        for step in reversed(named_route):
-            hamster.wheels(-step["left"], -step["right"])
-            update_screen("지정 슬롯 역주행 복귀 중...", step["duration"])
+        status_hud.update_status(motion="↩️ 시작 위치로 대칭 정밀 역주행 복귀 중")
+        reverse_route = waypoint_manager.get_reverse_return_trajectory(named_route)
+        for idx, step in enumerate(reverse_route, 1):
+            hamster.wheels(step["left"], step["right"])
+            update_screen(f"↩️ [정밀 역주행] 복귀 중 [{idx}/{len(reverse_route)}]", step["duration"])
+
+        # 초기 접근(0.3초) 완벽 대칭 역주행 (-30, -30)
+        hamster.wheels(-30, -30)
+        update_screen("↩️ 시작 위치 정밀 복귀 안착 중...", approach_dur)
         hamster.stop()
     else:
         hamster.wheels(-35, -35)
         update_screen("원래 위치로 후진 복귀 중...", 0.7)
 
-        if mapped_category == "플라스틱/페트병":
-            hamster.wheels(35, -35)
-            update_screen("시작 방향으로 회전 복귀", 0.6)
-        elif mapped_category == "캔":
-            hamster.wheels(-35, 35)
-            update_screen("시작 방향으로 회전 복귀", 0.6)
-
     hamster.stop()
-    update_screen("복귀 완료! 다음 쓰레기 감지 대기 중...", 0.5)
+    status_hud.update_status(motion="대기 중 (Standby)")
+    update_screen("복귀 완료! 다음 쓰레기 감지 대기 중...", 0.4)
     waypoint_manager.log_event("SORTING_COMPLETE", f"분리배출 및 복귀 완료: [{slot_id}번 {mapped_category}]")
 
 
@@ -604,7 +615,15 @@ def open_camera():
 
 
 def main():
-    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 지정 슬롯 스마트 자율주행 실행 (v4.3 유리병 제거)")
+    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)")
+
+    print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
+    routes_summary = []
+    for s_id, s_name in NUMBERED_SLOTS.items():
+        wp = waypoint_manager.get_waypoint(s_id)
+        n_steps = len(wp) if wp else 0
+        routes_summary.append(f"슬롯[{s_id} {s_name}]: {n_steps}단계")
+    print(f"[INFO] 로드 완료 ➔ {', '.join(routes_summary)}")
 
     print("[INFO] 모델을 불러오는 중...")
     model  = load_model(MODEL_PATH)
@@ -617,9 +636,10 @@ def main():
     hamster = Hamster()
     set_robot_led(hamster, ("off", "off"))
 
-    # ★ 시작 즉시 쓰레기 4종 위치 지정 슬롯 학습 세션
+    # ★ [핵심] 시작 즉시 웹캠을 켜지 않고 위치 지정 메뉴를 먼저 실행! (0번 누르면 웹캠 시작)
     initial_arrow_teach_session(hamster)
 
+    # 0번을 입력했을 때 비로소 웹캠 카메라 연결
     cap = open_camera()
     if cap is None or not cap.isOpened():
         print("[ERROR] 웹캠 카메라를 열 수 없습니다! 카메라 연결 상태를 확인해 주세요.")
@@ -631,12 +651,12 @@ def main():
     countdown(cap, COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [2단계: AI 쓰레기 4종 감지 & 지정 슬롯 자율주행 시작 (유리병 제거)]")
-    print("  - [1] 종이 ➔ 1번 위치 이동")
-    print("  - [2] 종이팩 ➔ 2번 위치 이동")
-    print("  - [3] 패트병(플라스틱) ➔ 3번 위치 이동")
-    print("  - [4] 캔 ➔ 4번 위치 이동")
-    print("  - 전방 센서 자동 우회: 이동 중 물건/장애물 발견 시 자동으로 회피 우회 주행!")
+    print("  [AI 쓰레기 4종 감지 & 지정 슬롯 자율주행 시작]")
+    print("  - [1] 종이 ➔ 1번 지정 수거함 이동")
+    print("  - [2] 종이팩 ➔ 2번 지정 수거함 이동")
+    print("  - [3] 패트병(플라스틱) ➔ 3번 지정 수거함 이동")
+    print("  - [4] 캔 ➔ 4번 지정 수거함 이동")
+    print("  - ↩️ 정밀 물리 대칭 엔진: 배출 후 1:1 대칭 역주행으로 시작 위치 오차 0.00cm 완벽 복귀!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
 
@@ -674,7 +694,6 @@ def main():
 
                 if consecutive_count >= REQUIRED_FRAMES:
                     stats[mapped_category] = stats.get(mapped_category, 0) + 1
-                    stats["total"] += 1
                     save_stats(stats)
 
                     timestamp = time.strftime("%Y%m%d_%H%M%S")

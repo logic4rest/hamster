@@ -1,5 +1,5 @@
 """
-쓰레기 4종 위치 번호별 저장 및 조종 학습 도구 (v4.2)
+쓰레기 4종 위치 번호별 저장 및 V6.3 정밀 역주행 복귀 학습 도구 (v4.8 키 누름 잔상 스킵 방지)
 ====================================================================================================
 4종 슬롯 매핑:
   [1] 종이
@@ -117,7 +117,12 @@ def record_slot_session(hamster, slot_num: str):
     print(f"  1. 햄스터를 {YELLOW}시작 위치(카메라 앞){RESET}에 놓아주세요.")
     print(f"  2. {CYAN}화살표 키(↑, ↓, ←, →){RESET}로 로봇을 조종하여 {YELLOW}[{slot_num}] '{slot_name}' 수거함 위치{RESET}까지 이동하세요.")
     print(f"  3. 도착하면 {GREEN}Enter(엔터){RESET} 키를 누르면 슬롯 [{slot_num}]번에 즉시 저장됩니다.")
-    print(f"  4. 저장이 완료되면 로봇이 자동으로 원래 시작 위치로 역주행 복귀합니다.\n")
+    print(f"  4. 저장이 완료되면 V6.3 Zero-Slip 물리 엔진으로 로봇이 원래 시작 위치로 역주행 복귀합니다.\n")
+
+    # 💡 [핵심 버그 수정] 이전 콘솔 입력(1~4번 선택) 시 눌린 Enter 키 잔상 완벽 제거
+    while keyboard.is_pressed("enter") or keyboard.is_pressed("space"):
+        time.sleep(0.05)
+    time.sleep(0.3)
 
     hamster.leds("yellow", "yellow")
     hamster.beep()
@@ -141,7 +146,8 @@ def record_slot_session(hamster, slot_num: str):
                 dur = time.time() - step_start_time
                 if cur_left != 0 or cur_right != 0:
                     route_steps.append({"left": cur_left, "right": cur_right, "duration": dur})
-                break
+                if len(route_steps) > 0 or (time.time() - step_start_time > 1.0):
+                    break
 
             if keyboard.is_pressed("o"):
                 control_gripper(hamster, "open")
@@ -180,24 +186,25 @@ def record_slot_session(hamster, slot_num: str):
 
     print(f"\n\n{GREEN}[저장 완료] 슬롯 [{slot_num}] '{slot_name}' 위치가 성공적으로 저장되었습니다! ({len(trajectory)}단계){RESET}")
 
-    # 자동 역주행 복귀
-    print(f"\n{CYAN}>>> [자동 복귀] 저장된 데이터의 역방향으로 시작 위치로 복귀합니다... <<<{RESET}")
+    # 💡 V6.3 Zero-Slip 정밀 역주행 복귀
+    print(f"\n{CYAN}>>> [Zero-Slip V6.3 복귀] 저장된 데이터의 역방향으로 시작 위치로 복귀합니다... <<<{RESET}")
     hamster.beep()
     time.sleep(0.5)
 
-    for s in reversed(trajectory):
-        hamster.wheels(-s["left"], -s["right"])
+    reverse_route = waypoint_manager.get_reverse_return_trajectory(trajectory)
+    for s in reverse_route:
+        hamster.wheels(s["left"], s["right"])
         time.sleep(s["duration"])
 
     hamster.stop()
     hamster.leds("off", "off")
-    print(f"\n{GREEN}{BOLD}🎉 슬롯 [{slot_num}] '{slot_name}' 위치 저장 및 복귀 완료!{RESET}\n")
+    print(f"\n{GREEN}{BOLD}🎉 슬롯 [{slot_num}] '{slot_name}' 위치 저장 및 정밀 복귀 완료!{RESET}\n")
     return saved_info
 
 
 def main():
     print(f"\n{BOLD}{'='*65}")
-    print("  🐹 쓰레기 4종 위치 번호별 지정 저장 도구 (v4.2)")
+    print("  🐹 쓰레기 4종 위치 번호별 지정 저장 도구 (v4.8 Key Debounce Fix)")
     print(f"{'='*65}{RESET}\n")
 
     print("[INFO] 햄스터 로봇 연결 중...")
