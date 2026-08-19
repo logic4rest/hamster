@@ -160,3 +160,6 @@
 [2026-08-19 23:43:08] [WAYPOINT_SAVED] 슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (8단계 오차보정) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\3_플라스틱_페트병.json"}
 [2026-08-19 23:44:16] [WAYPOINT_SAVED] 슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (6단계 오차보정) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\3_플라스틱_페트병.json"}
 [2026-08-19 23:45:25] [WAYPOINT_SAVED] 슬롯 [4] '캔' 위치 저장 완료 (5단계 오차보정) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\4_캔.json"}
+[2026-08-19 23:59:48] [SYSTEM_START] AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)
+[2026-08-20 00:00:18] [SYSTEM_STOP] 프로그램 정상 종료
+[2026-08-20 00:01:25] [SYSTEM_START] AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)

@@ -1,27 +1,5 @@
 [
   {
-    "timestamp": "2026-08-19 20:41:16",
-    "event_type": "WAYPOINT_SAVED",
-    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계)",
-    "extra": {
-      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
-    }
-  },
-  {
-    "timestamp": "2026-08-19 20:48:42",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 지정 슬롯 자율주행 실행 (v4.6 Zero-Slip V6.3 정밀복귀)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 20:49:18",
-    "event_type": "WAYPOINT_SAVED",
-    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계 V6.3 오차보정)",
-    "extra": {
-      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
-    }
-  },
-  {
     "timestamp": "2026-08-19 20:51:59",
     "event_type": "SYSTEM_START",
     "message": "AI 쓰레기 4종 지정 슬롯 자율주행 실행 (v4.7 오차 0.00cm 정밀복귀)",
@@ -658,5 +636,23 @@
     "extra": {
       "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\4_캔.json"
     }
+  },
+  {
+    "timestamp": "2026-08-19 23:59:48",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 00:00:18",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 00:01:25",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v5.2)",
+    "extra": {}
   }
 ]
