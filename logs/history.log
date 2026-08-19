@@ -1,0 +1,27 @@
+[2026-08-19 18:58:41] [SYSTEM_START] AI 쓰레기 분리배출 자율주행 스마트 로봇 실행 (v4.0)
+[2026-08-19 18:59:28] [SYSTEM_START] AI 쓰레기 분리배출 자율주행 스마트 로봇 실행 (v4.0)
+[2026-08-19 19:00:00] [WAYPOINT_SAVED] 위치 북마크 저장 완료: '종이' (7단계) | {"path": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\종이.json", "master_path": "C:\\Users\\User\\Desktop\\hamster\\routes\\waypoints.json"}
+[2026-08-19 19:00:21] [CAPTURE_SAVED] 이미지 자동 캡처 파티셔닝 저장: 20260819_190021_종이.jpg
+[2026-08-19 19:00:21] [SORTING_START] 분리배출 확정 시퀀스 시작: '종이' (신뢰도: 0.88)
+[2026-08-19 19:00:24] [WAYPOINT_RECALL] 이름 기반 위치 호출 성공: '종이'
+[2026-08-19 19:00:24] [AUTONOMOUS_NAV] 이름 기반 북마크 '종이' 자율주행 실행 (7단계)
+[2026-08-19 19:00:40] [OBSTACLE_DETECTED] 전방 장애물 탐지 (좌:37, 우:36) -> 회피 우회 시작
+[2026-08-19 19:00:54] [SYSTEM_STOP] 프로그램 정상 종료
+[2026-08-19 19:03:04] [SYSTEM_START] AI 쓰레기 분리배출 자율주행 스마트 로봇 실행 (v4.0)
+[2026-08-19 19:03:37] [WAYPOINT_SAVED] 다중 북마크 저장 완료: '종이' (5단계 오차보정 적용) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\종이.json"}
+[2026-08-19 19:03:57] [CAPTURE_SAVED] 이미지 자동 캡처 파티셔닝 저장: 20260819_190357_종이.jpg
+[2026-08-19 19:03:57] [SORTING_START] 분리배출 확정 시퀀스 시작: '종이' (신뢰도: 0.99)
+[2026-08-19 19:04:00] [WAYPOINT_RECALL] 이름 기반 위치 호출: '종이'
+[2026-08-19 19:04:00] [AUTONOMOUS_NAV] 이름 기반 북마크 '종이' 자율주행 실행 (5단계)
+[2026-08-19 19:04:02] [OBSTACLE_DETECTED] 전방 장애물 탐지 (좌:36, 우:2) -> 회피 우회 시작
+[2026-08-19 19:04:11] [OBSTACLE_DETECTED] 전방 장애물 탐지 (좌:17, 우:37) -> 회피 우회 시작
+[2026-08-19 19:04:14] [SYSTEM_STOP] 프로그램 정상 종료
+[2026-08-19 20:20:41] [WAYPOINT_SAVED] 슬롯 [1] '종이' 위치 저장 완료 (5단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"}
+[2026-08-19 20:21:10] [WAYPOINT_SAVED] 슬롯 [1] '종이' 위치 저장 완료 (1단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"}
+[2026-08-19 20:21:45] [WAYPOINT_SAVED] 슬롯 [2] '종이팩' 위치 저장 완료 (5단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\2_종이팩.json"}
+[2026-08-19 20:22:09] [WAYPOINT_SAVED] 슬롯 [1] '종이' 위치 저장 완료 (1단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"}
+[2026-08-19 20:22:50] [WAYPOINT_SAVED] 슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (5단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\3_플라스틱_페트병.json"}
+[2026-08-19 20:23:23] [WAYPOINT_SAVED] 슬롯 [1] '종이' 위치 저장 완료 (1단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"}
+[2026-08-19 20:24:00] [WAYPOINT_SAVED] 슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (5단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\3_플라스틱_페트병.json"}
+[2026-08-19 20:24:29] [WAYPOINT_SAVED] 슬롯 [1] '종이' 위치 저장 완료 (1단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"}
+[2026-08-19 20:25:18] [WAYPOINT_SAVED] 슬롯 [4] '캔' 위치 저장 완료 (11단계) | {"partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\4_캔.json"}

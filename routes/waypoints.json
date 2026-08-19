@@ -1,0 +1,286 @@
+{
+  "종이": {
+    "slot": "1",
+    "name": "종이",
+    "date": "2026-08-19 20:24:29",
+    "trajectory_steps": 1,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 1.0
+      }
+    ]
+  },
+  "1_종이": {
+    "slot": "1",
+    "name": "종이",
+    "date": "2026-08-19 20:24:29",
+    "trajectory_steps": 1,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 1.0
+      }
+    ]
+  },
+  "2_종이팩": {
+    "slot": "2",
+    "name": "종이팩",
+    "date": "2026-08-19 20:21:45",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.24
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.91
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.73
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.91
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 4.14
+      }
+    ]
+  },
+  "종이팩": {
+    "slot": "2",
+    "name": "종이팩",
+    "date": "2026-08-19 20:21:45",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.24
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.91
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.73
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.91
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 4.14
+      }
+    ]
+  },
+  "3_플라스틱/페트병": {
+    "slot": "3",
+    "name": "플라스틱/페트병",
+    "date": "2026-08-19 20:24:00",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.8
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.91
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 15.84
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.79
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 2.9
+      }
+    ]
+  },
+  "플라스틱/페트병": {
+    "slot": "3",
+    "name": "플라스틱/페트병",
+    "date": "2026-08-19 20:24:00",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.8
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.91
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 15.84
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.79
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 2.9
+      }
+    ]
+  },
+  "4_캔": {
+    "slot": "4",
+    "name": "캔",
+    "date": "2026-08-19 20:25:18",
+    "trajectory_steps": 11,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.99
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.82
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 4.74
+      },
+      {
+        "left": 35,
+        "right": 14,
+        "duration": 0.16
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 9.92
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.16
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 1.04
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.17
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 0.16
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.87
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.13
+      }
+    ]
+  },
+  "캔": {
+    "slot": "4",
+    "name": "캔",
+    "date": "2026-08-19 20:25:18",
+    "trajectory_steps": 11,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.99
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.82
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 4.74
+      },
+      {
+        "left": 35,
+        "right": 14,
+        "duration": 0.16
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 9.92
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.16
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 1.04
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.17
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 0.16
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.87
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.13
+      }
+    ]
+  }
+}

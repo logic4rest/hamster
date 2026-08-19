@@ -1,0 +1,33 @@
+{
+  "slot": "3",
+  "name": "플라스틱/페트병",
+  "date": "2026-08-19 20:24:00",
+  "trajectory_steps": 5,
+  "trajectory": [
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 5.8
+    },
+    {
+      "left": 35,
+      "right": -35,
+      "duration": 0.91
+    },
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 15.84
+    },
+    {
+      "left": 35,
+      "right": -35,
+      "duration": 0.79
+    },
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 2.9
+    }
+  ]
+}

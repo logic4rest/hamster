@@ -1,0 +1,187 @@
+[
+  {
+    "timestamp": "2026-08-19 18:58:41",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 분리배출 자율주행 스마트 로봇 실행 (v4.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 18:59:28",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 분리배출 자율주행 스마트 로봇 실행 (v4.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:00:00",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "위치 북마크 저장 완료: '종이' (7단계)",
+    "extra": {
+      "path": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\종이.json",
+      "master_path": "C:\\Users\\User\\Desktop\\hamster\\routes\\waypoints.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 19:00:21",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260819_190021_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:00:21",
+    "event_type": "SORTING_START",
+    "message": "분리배출 확정 시퀀스 시작: '종이' (신뢰도: 0.88)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:00:24",
+    "event_type": "WAYPOINT_RECALL",
+    "message": "이름 기반 위치 호출 성공: '종이'",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:00:24",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "이름 기반 북마크 '종이' 자율주행 실행 (7단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:00:40",
+    "event_type": "OBSTACLE_DETECTED",
+    "message": "전방 장애물 탐지 (좌:37, 우:36) -> 회피 우회 시작",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:00:54",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:03:04",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 분리배출 자율주행 스마트 로봇 실행 (v4.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:03:37",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "다중 북마크 저장 완료: '종이' (5단계 오차보정 적용)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 19:03:57",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260819_190357_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:03:57",
+    "event_type": "SORTING_START",
+    "message": "분리배출 확정 시퀀스 시작: '종이' (신뢰도: 0.99)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:04:00",
+    "event_type": "WAYPOINT_RECALL",
+    "message": "이름 기반 위치 호출: '종이'",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:04:00",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "이름 기반 북마크 '종이' 자율주행 실행 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:04:02",
+    "event_type": "OBSTACLE_DETECTED",
+    "message": "전방 장애물 탐지 (좌:36, 우:2) -> 회피 우회 시작",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:04:11",
+    "event_type": "OBSTACLE_DETECTED",
+    "message": "전방 장애물 탐지 (좌:17, 우:37) -> 회피 우회 시작",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 19:04:14",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-19 20:20:41",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 20:21:10",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (1단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 20:21:45",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [2] '종이팩' 위치 저장 완료 (5단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\2_종이팩.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 20:22:09",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (1단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 20:22:50",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (5단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\3_플라스틱_페트병.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 20:23:23",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (1단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 20:24:00",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (5단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\3_플라스틱_페트병.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 20:24:29",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (1단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-19 20:25:18",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [4] '캔' 위치 저장 완료 (11단계)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\4_캔.json"
+    }
+  }
+]
