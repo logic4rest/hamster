@@ -61,6 +61,8 @@ COUNTDOWN_SEC              = 2     # 시작 전 카운트다운 초
 CATEGORY_MAP = {
     "무색 페트병, 무색플라스틱": "플라스틱/페트병",
     "플라스틱": "플라스틱/페트병",
+    "플라시틱& 페트병": "플라스틱/페트병",
+    "플라시틱": "플라스틱/페트병",
     "무색 페트병": "플라스틱/페트병",
     "패트병": "플라스틱/페트병",
     "유리병, 유리통": "플라스틱/페트병",
@@ -184,7 +186,7 @@ def map_raw_label_to_category(raw_label: str) -> str:
     if raw_label in CATEGORY_MAP:
         return CATEGORY_MAP[raw_label]
 
-    if any(k in raw_label for k in ["유리병", "유리통", "유리", "병", "페트병", "패트병", "플라스틱"]):
+    if any(k in raw_label for k in ["유리병", "유리통", "유리", "병", "페트병", "패트병", "플라스틱", "플라시틱"]):
         return "플라스틱/페트병"
     elif "캔" in raw_label:
         return "캔"
