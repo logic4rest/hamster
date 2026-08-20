@@ -1,57 +1,5 @@
 [
   {
-    "timestamp": "2026-08-19 21:43:45",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 지정 슬롯 자율주행 실행 (v5.0 단일패스 HUD)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:44:36",
-    "event_type": "WAYPOINT_SAVED",
-    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계 오차보정)",
-    "extra": {
-      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
-    }
-  },
-  {
-    "timestamp": "2026-08-19 21:46:12",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 지정 슬롯 자율주행 실행 (v5.0 단일패스 HUD)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:46:57",
-    "event_type": "WAYPOINT_SAVED",
-    "message": "슬롯 [1] '종이' 위치 저장 완료 (9단계 오차보정)",
-    "extra": {
-      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
-    }
-  },
-  {
-    "timestamp": "2026-08-19 21:48:30",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260819_214830_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:48:30",
-    "event_type": "SORTING_START",
-    "message": "분리배출 확정 시퀀스 시작: '종이' (신뢰도: 0.82)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:48:32",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 자율주행 실행 (9단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:48:39",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:0, 우:53) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-19 21:48:44",
     "event_type": "OBSTACLE_DETECTED",
     "message": "전방 장애물 탐지 (좌:6, 우:37) -> 회피 우회 시작",
@@ -624,5 +572,55 @@
     "extra": {
       "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\1_종이.json"
     }
+  },
+  {
+    "timestamp": "2026-08-20 18:38:59",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.3 엣지트리거)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:39:37",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-20 18:40:19",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_184019_종이팩.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:40:19",
+    "event_type": "SORTING_START",
+    "message": "분리배출 확정 시퀀스 시작: '종이팩' (신뢰도: 0.94)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:40:26",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_184026_종이팩.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:40:26",
+    "event_type": "SORTING_START",
+    "message": "분리배출 확정 시퀀스 시작: '종이팩' (신뢰도: 1.00)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:40:30",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:40:58",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
   }
 ]
