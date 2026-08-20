@@ -1,13 +1,12 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v6.7 처음 집게 핀 대기 ➔ 6초 후 집게 오므림 ➔ 수거함 이동 ➔ 복귀 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v6.8 6초 AI 인식 확신 대기 ➔ 집게 오므림 ➔ 수거함 이동 ➔ 복귀 에디션)
 ====================================================================================================
-- [유저 요구사항 100% 완벽 반영] 쓰레기 4종(종이, 종이팩, 캔, 플라스틱/페트병) 인식 시:
-  1. 처음에는 실물 집게를 핀 상태(OPEN)로 유지
-  2. 집게를 핀 상태(OPEN)로 6초 동안 대기 (카운트다운 시각 렌더링)
-  3. 6초가 지난 후에 비로소 집게를 오므려/닫아(CLOSE) 쓰레기를 포획
-  4. 지정된 수거함 슬롯(1~4번) 경로에 따라 주행 이동
-  5. 수거함 도착 완료 시 집게를 펼쳐(OPEN) 쓰레기 투입
-  6. 1:1 대칭 역주행으로 다시 시작 위치로 오차 0.00cm 완벽 복귀 후 다음 감지 대기 (집게 핀 상태 유지)
+- [유저 요구사항 100% 완벽 반영]
+  1. 쓰레기(종이, 종이팩, 캔, 플라스틱/페트병)를 인식하고 AI가 확신을 갖는 대기 시간을 6초(`REQUIRED_HOLD_SEC = 6.0`)로 변경
+  2. 쓰레기가 6초 동안 연속으로 카메라에 유지되면 100% 최종 확정
+  3. 처음에는 집게를 핀 상태(OPEN)로 대기하다가 6초 확정 직후 집게를 꽉 오므려/닫아(CLOSE) 포획
+  4. 지정된 수거함 슬롯(1~4번) 경로에 따라 주행 이동 후 집게를 펼쳐(OPEN) 쓰레기 투입
+  5. 1:1 대칭 역주행으로 다시 시작 위치로 오차 0.00cm 완벽 복귀 후 다음 감지 대기 (집게 핀 상태 유지)
 
 실행 방법:
     uv run hamster
@@ -54,9 +53,8 @@ TODAY_CAPTURES_DIR.mkdir(parents=True, exist_ok=True)
 STATS_PATH   = PROJECT_ROOT / "stats.json"
 
 CONFIDENCE_THRESHOLD       = 0.8   # 이 값 미만이면 폐기/대기 (없음 처리)
-REQUIRED_FRAMES            = 2     # 연속 2프레임 동일 시 인식 발동
+REQUIRED_HOLD_SEC          = 6.0   # 쓰레기 6초 지속 인식 확신 조건 (6초 이상 유지)
 COUNTDOWN_SEC              = 2     # 시작 전 카운트다운 초
-WAIT_GRIPPER_OPEN_SEC      = 6.0   # 집게 핀 상태로 대기하는 시간 (6초)
 
 # ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
 CATEGORY_MAP = {
@@ -102,12 +100,12 @@ COLOR_BGR_MAP = {
 
 # 올바른 분리배출 안내문
 RECYCLING_TIPS = {
-    "플라스틱/페트병": "💡 [3번 패트병 슬롯] 처음 집게 핀 상태 6초 대기 ➔ 6초 후 오므리기 ➔ 수거함 이동",
-    "캔": "💡 [4번 캔 슬롯] 처음 집게 핀 상태 6초 대기 ➔ 6초 후 오므리기 ➔ 수거함 이동",
-    "종이": "💡 [1번 종이 슬롯] 처음 집게 핀 상태 6초 대기 ➔ 6초 후 오므리기 ➔ 수거함 이동",
-    "종이팩": "💡 [2번 종이팩 슬롯] 처음 집게 핀 상태 6초 대기 ➔ 6초 후 오므리기 ➔ 수거함 이동",
+    "플라스틱/페트병": "💡 [3번 패트병 슬롯] 6초 연속 인식 확신 ➔ 집게 오므리기 ➔ 수거함 이동",
+    "캔": "💡 [4번 캔 슬롯] 6초 연속 인식 확신 ➔ 집게 오므리기 ➔ 수거함 이동",
+    "종이": "💡 [1번 종이 슬롯] 6초 연속 인식 확신 ➔ 집게 오므리기 ➔ 수거함 이동",
+    "종이팩": "💡 [2번 종이팩 슬롯] 6초 연속 인식 확신 ➔ 집게 오므리기 ➔ 수거함 이동",
     "이물질/경고": "🚨 오배출 경고! 이물질을 먼저 세척하고 라벨을 떼어 버려주세요!",
-    "없음": "💡 쓰레기를 햄스터봇 카메라 중앙에 비추면 집게를 핀 상태로 6초간 대기 후 오므립니다.",
+    "없음": "💡 쓰레기를 햄스터봇 카메라 중앙에 6초 동안 보여주면 확신 후 자동 수거합니다.",
 }
 
 
@@ -201,7 +199,7 @@ def map_raw_label_to_category(raw_label: str) -> str:
     return "없음"
 
 
-def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int, max_count: int, stats: dict, gripper_status: str = "") -> np.ndarray:
+def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, elapsed_sec: float, stats: dict, gripper_status: str = "") -> np.ndarray:
     """단일 패스 PIL 메모리 독립 렌더러 (그래픽 중복 깨짐 100% 원천 차단)"""
     if frame is None:
         return frame
@@ -216,7 +214,8 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     # 1. Bounding Box 사각형 및 모서리 포인터
     x1, y1 = int(w * 0.15), int(h * 0.15)
     x2, y2 = int(w * 0.85), int(h * 0.80)
-    thickness = 3 if count < max_count else 5
+    is_confirmed = elapsed_sec >= REQUIRED_HOLD_SEC
+    thickness = 5 if is_confirmed else 3
     cv2.rectangle(canvas, (x1, y1), (x2, y2), color, thickness)
 
     c_len = int(min(w, h) * 0.06)
@@ -228,6 +227,12 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     cv2.line(canvas, (x1, y2), (x1, y2 - c_len), color, thickness + 2)
     cv2.line(canvas, (x2, y2), (x2 - c_len, y2), color, thickness + 2)
     cv2.line(canvas, (x2, y2), (x2, y2 - c_len), color, thickness + 2)
+
+    # 6초 지속 인식 확신 게이지 바 렌더링
+    gauge_ratio = min(elapsed_sec / REQUIRED_HOLD_SEC, 1.0)
+    gauge_w = int((x2 - x1) * gauge_ratio)
+    cv2.rectangle(canvas, (x1, y2 + 8), (x1 + gauge_w, y2 + 20), color, -1)
+    cv2.rectangle(canvas, (x1, y2 + 8), (x2, y2 + 20), (100, 100, 100), 2)
 
     text_draw_list = []
 
@@ -254,17 +259,17 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
             grip_label = f"🚚 [로봇 이동 모션] {gripper_status}"
             g_bg_color = (200, 100, 0)
 
-        cv2.rectangle(canvas, (x1 - 40, y2 + 10), (x2 + 40, y2 + 45), g_bg_color, -1)
-        text_draw_list.append((grip_label, (x1 - 30, y2 + 15), 16, (255, 255, 255)))
+        cv2.rectangle(canvas, (x1 - 40, y2 + 25), (x2 + 40, y2 + 60), g_bg_color, -1)
+        text_draw_list.append((grip_label, (x1 - 30, y2 + 30), 16, (255, 255, 255)))
 
     # 3. 상단 중앙 카테고리 태그 바
     if clean_category != "없음":
-        if category.startswith("★ 확정:"):
-            tag_text = f"★ [인식 완료] {clean_category} (집게 핀 상태 6초 대기 후 오므림!)"
+        if is_confirmed:
+            tag_text = f"★ [6초 확신 확정] {clean_category} (집게 오므리기 ➔ 자율이동!)"
         else:
-            tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}]"
+            tag_text = f"{clean_category} | {conf:.0%} [{elapsed_sec:.1f}초 / 6.0초 확신 대기]"
     else:
-        tag_text = "쓰레기 감지 대기 중... (집게 핀 상태 OPEN 대기 중)"
+        tag_text = "쓰레기 감지 대기 중... (6초 동안 비추면 확정 후 자동 수거)"
 
     text_draw_list.append((tag_text, (x1 + 10, y1 - 32), 18, color))
 
@@ -471,10 +476,9 @@ def initial_arrow_teach_session(hamster):
 
 def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: float, stats: dict):
     """
-    💡 [유저 요구사항 100% 완벽 반영]
-    인식 시 처음에는 집게를 핀 상태(OPEN)로 6초간 대기 ➔ 6초 지난 후 집게 오므리기(CLOSE) ➔ 수거함 이동 ➔ 집게 펴기 ➔ 0.00cm 대칭 복귀
+    💡 6초 연속 인식 확정 ➔ 집게 오므리기(CLOSE) ➔ 수거함 이동 ➔ 집게 펴기(OPEN) ➔ 0.00cm 대칭 복귀
     """
-    waypoint_manager.log_event("SORTING_START", f"6초 대기후 집게오므림 자율운반 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
+    waypoint_manager.log_event("SORTING_START", f"6초 확신확정 자율운반 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
 
     slot_map = {
         "종이": "1",
@@ -489,32 +493,19 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
         while time.time() - start < duration_sec:
             img = cam.read()
             if img is not None:
-                img = draw_hud_and_bbox(img, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats, status_msg)
+                img = draw_hud_and_bbox(img, f"★ 확정: {mapped_category}", conf, REQUIRED_HOLD_SEC, stats, status_msg)
                 cam.show(img)
             if cam.check_key() == "esc":
                 break
 
-    # 1. 💡 쓰레기를 인식하면 처음에 집게를 핀 상태(OPEN)로 대기!
-    print(f"\n  🤖 ['{mapped_category}' 인식 완료!] 집게를 핀 상태(OPEN)로 6초간 수거 대기합니다...")
-    hamster.beep()
-    control_physical_gripper(hamster, "open")
-    status_hud.update_status(motion=f"[{mapped_category}] 인식! 집게 핀 상태(OPEN) 대기")
-
-    # 2. 💡 집게를 핀 상태(OPEN)로 6초 동안 기다리기
-    wait_start = time.time()
-    while time.time() - wait_start < WAIT_GRIPPER_OPEN_SEC:
-        rem_sec = max(0.0, WAIT_GRIPPER_OPEN_SEC - (time.time() - wait_start))
-        status_hud.update_status(motion=f"[{mapped_category}] 집게 핀 상태로 6초 대기 중 ({rem_sec:.1f}s)")
-        update_screen(f"🦾 [{mapped_category}] 집게 핀 상태(OPEN) 대기 중 ({rem_sec:.1f}초 남음)", 0.1)
-
-    # 3. 💡 6초가 지난 후에 비로소 집게 오므리기/닫기 (CLOSE) 쓰레기 포획!
-    print(f"  🦾 [6초 경과!] 집게 오므리기/닫기 (CLOSE) 쓰레기 포획 완료!")
+    # 1. 💡 6초 연속 확신 확정 ➔ 삐! 소리와 함께 집게 오므리기/닫기 (CLOSE) 쓰레기 포획!
+    print(f"\n  🤖 [6초 확신 확정 완료!] '{mapped_category}' 포획 ➔ 집게 오므리기 (CLOSE) 시퀀스 발동!")
     hamster.beep()
     control_physical_gripper(hamster, "close")
-    status_hud.update_status(motion="6초 경과! 집게 오므리기 & 쓰레기 포획 (CLOSE)")
-    update_screen("6초 경과! 집게 오므리기 & 쓰레기 포획 (CLOSE)", 0.6)
+    status_hud.update_status(motion="6초 확신 완료! 집게 오므리기 (CLOSE)")
+    update_screen("6초 확신 완료! 집게 오므리기 & 쓰레기 포획 (CLOSE)", 0.6)
 
-    # 4. 💡 이제 지정된 수거함 슬롯(1~4번)으로 주행 이동!
+    # 2. 💡 지정된 수거함 슬롯(1~4번)으로 주행 이동!
     named_route = waypoint_manager.get_waypoint(mapped_category)
 
     if named_route:
@@ -537,13 +528,13 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
 
     hamster.stop()
 
-    # 5. 수거함 도착 완료 시 실물 집게 펴기 / 열기 (OPEN / RELEASE) 쓰레기 투입!
+    # 3. 수거함 도착 완료 시 실물 집게 펴기 / 열기 (OPEN / RELEASE) 쓰레기 투입!
     print(f"  🎉 [{slot_id}번 {mapped_category} 수거함 도착] 실물 집게 펴기 (OPEN / RELEASE) 쓰레기 투입 완료!")
     control_physical_gripper(hamster, "open")
     status_hud.update_status(motion=f"[{mapped_category}] 수거함 도착! 집게 펴기 (RELEASE)")
     update_screen("수거함 도착! 집게 펴기 투입 완료 (OPEN)", 0.8)
 
-    # 6. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
+    # 4. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
     if named_route:
         print("  ↩️ 원본 대칭 역주행 궤적으로 시작 위치로 오차 0.00cm 복귀합니다...")
         status_hud.update_status(motion="↩️ 시작 위치로 대칭 정밀 역주행 복귀 중")
@@ -554,7 +545,7 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
 
         hamster.stop()
 
-    # 7. 복귀 완료 후 다음 감지를 위해 집게를 항상 핀 상태(OPEN)로 준비
+    # 5. 복귀 완료 후 다음 감지를 위해 집게를 항상 핀 상태(OPEN)로 준비
     control_physical_gripper(hamster, "open")
     status_hud.update_status(motion="대기 중 (Standby - OPEN)")
     update_screen("시작 위치 복귀 완료! 다음 쓰레기 감지 대기 중 (OPEN)...", 0.5)
@@ -578,7 +569,7 @@ def open_camera():
 
 
 def main():
-    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 인식 처음 집게 핀상태 6초 대기 ➔ 6초후 집게 오므림 ➔ 자율이동 (v6.7)")
+    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 6초 인식 확신 대기 ➔ 집게 오므림 ➔ 자율이동 (v6.8)")
 
     print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
     routes_summary = []
@@ -618,19 +609,19 @@ def main():
     cam.count_down(COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [AI 쓰레기 4종 인식 ➔ 처음 집게 핀 6초 대기 ➔ 6초 후 집게 오므리기 ➔ 수거함 이동 ➔ 복귀]")
+    print("  [AI 쓰레기 4종 6초 인식 확신 대기 ➔ 집게 오므리기 ➔ 수거함 이동 ➔ 복귀]")
     print("  - 🦾 초기 및 대기 상태: 실물 집게 핀 상태(OPEN) 수거 대기 유지")
     print("  - [1] 종이 ➔ 1번 수거함 이동")
     print("  - [2] 종이팩 ➔ 2번 수거함 이동")
     print("  - [3] 패트병(플라스틱) ➔ 3번 수거함 이동")
     print("  - [4] 캔 ➔ 4번 수거함 이동")
-    print("  - 🤖 인식 시: 집게 핀 상태(OPEN)로 6초 대기 ➔ 6초 후 집게 오므림(CLOSE) ➔ 수거함 이동 ➔ 집게 펴기(OPEN) ➔ 복귀!")
+    print("  - 🤖 인식 시: 6.0초 동안 연속 확신 대기 ➔ 6초 후 집게 오므림(CLOSE) ➔ 수거함 이동 ➔ 집게 펴기(OPEN) ➔ 복귀!")
     print("  - ↩️ 정밀 물리 대칭 엔진: 배출 후 1:1 대칭 역주행으로 시작 위치 오차 0.00cm 완벽 복귀!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
 
     current_target = None
-    consecutive_count = 0
+    detect_start_time = None
 
     try:
         while True:
@@ -649,16 +640,18 @@ def main():
                 mapped_category = map_raw_label_to_category(raw_label)
 
             if mapped_category != "없음":
-                if mapped_category == current_target:
-                    consecutive_count += 1
+                now = time.time()
+                if mapped_category == current_target and detect_start_time is not None:
+                    elapsed_sec = now - detect_start_time
                 else:
                     current_target = mapped_category
-                    consecutive_count = 1
+                    detect_start_time = now
+                    elapsed_sec = 0.0
 
-                image = draw_hud_and_bbox(image, mapped_category, conf, consecutive_count, REQUIRED_FRAMES, stats)
+                image = draw_hud_and_bbox(image, mapped_category, conf, elapsed_sec, stats)
 
-                # 💡 쓰레기를 감지하면 처음에 집게를 핀 상태로 6초 대기 ➔ 6초 지난 후 집게 오므리고 ➔ 수거함 이동!
-                if consecutive_count >= REQUIRED_FRAMES:
+                # 💡 쓰레기를 6초 동안 연속으로 확신(인식)했을 때 최종 확정!
+                if elapsed_sec >= REQUIRED_HOLD_SEC:
                     stats[mapped_category] = stats.get(mapped_category, 0) + 1
                     save_stats(stats)
 
@@ -671,18 +664,18 @@ def main():
                     led_spec = LED_MAP.get(mapped_category, ("off", "off"))
                     set_robot_led(hamster, led_spec)
 
-                    # 💡 처음 집게 핀 상태(OPEN) 6초 대기 ➔ 6초 후 집게 오므리기(CLOSE) ➔ 수거함 자율이동 ➔ 집게 펴기(OPEN) ➔ 0.00cm 대칭 복귀!
+                    # 💡 6초 연속 인식 확정 ➔ 집게 오므리기(CLOSE) ➔ 수거함 이동 ➔ 집게 펴기(OPEN) ➔ 0.00cm 대칭 복귀!
                     operate_gripper_and_transport(hamster, cam, mapped_category, conf, stats)
 
                     set_robot_led(hamster, ("off", "off"))
                     current_target = None
-                    consecutive_count = 0
+                    detect_start_time = None
 
             else:
                 current_target = None
-                consecutive_count = 0
+                detect_start_time = None
                 set_robot_led(hamster, ("off", "off"))
-                image = draw_hud_and_bbox(image, "없음", conf, 0, REQUIRED_FRAMES, stats)
+                image = draw_hud_and_bbox(image, "없음", conf, 0.0, stats)
 
             if image is not None:
                 cam.show(image)
