@@ -1,10 +1,10 @@
 """
-쓰레기 4종 위치 번호별 저장 및 V6.3 정밀 역주행 복귀 학습 도구 (v6.1 수동 집게 키 매핑 에디션)
+쓰레기 4종 위치 번호별 저장 및 V6.3 정밀 역주행 복귀 학습 도구 (v6.3 엣지 트리가 에디션)
 ====================================================================================================
 키 조종 안내:
   - 🕹️ 화살표 키(↑, ↓, ←, →): 로봇 이동 조종
-  - 🦾 Enter (엔터): 실물 집게 접기 / 닫기 (CLOSE)
-  - 🦾 Spacebar (스페이스바): 실물 집게 펼치기 / 열기 (OPEN)
+  - 🦾 Enter 또는 C: 실물 집게 접기 / 닫기 (CLOSE)
+  - 🦾 Spacebar 또는 O: 실물 집게 펼치기 / 열기 (OPEN)
   - 🏁 Q 키 또는 ESC: 도착 완주 및 0.00cm 대칭 정밀 역주행 복귀 저장
 
 실행 방법:
@@ -116,12 +116,12 @@ def record_slot_session(hamster, slot_num: str):
 
     print(f"  1. 햄스터를 {YELLOW}시작 위치(카메라 앞){RESET}에 놓아주세요.")
     print(f"  2. {CYAN}화살표 키(↑, ↓, ←, →){RESET}로 로봇을 조종하여 {YELLOW}[{slot_num}] '{slot_name}' 수거함 위치{RESET}까지 이동하세요.")
-    print(f"  3. 🦾 {GREEN}Enter(엔터){RESET}: 집게 접기/닫기  |  🦾 {CYAN}Spacebar(스페이스바){RESET}: 집게 펼치기/열기")
+    print(f"  3. 🦾 {GREEN}Enter 또는 C{RESET}: 집게 접기/닫기  |  🦾 {CYAN}Space 또는 O{RESET}: 집게 펼치기/열기")
     print(f"  4. 도착하면 {GREEN}Q 키 또는 ESC{RESET}를 누르면 저장 후 시작 위치로 대칭 복귀합니다.\n")
 
-    while keyboard.is_pressed("q") or keyboard.is_pressed("esc"):
+    while keyboard.is_pressed("enter") or keyboard.is_pressed("space") or keyboard.is_pressed("q") or keyboard.is_pressed("esc"):
         time.sleep(0.05)
-    time.sleep(0.3)
+    time.sleep(0.2)
 
     hamster.leds("yellow", "yellow")
     hamster.beep()
@@ -131,7 +131,10 @@ def record_slot_session(hamster, slot_num: str):
     step_start_time = time.time()
     poll_interval = 0.04
 
-    print(f"{YELLOW}>>> Enter:집게접기 | Spacebar:집게펼치기 | Q 또는 ESC:도착완료저장 <<<{RESET}\n")
+    prev_enter = False
+    prev_space = False
+
+    print(f"{YELLOW}>>> Enter/C:집게접기 | Space/O:집게펼치기 | Q/ESC:도착완료저장 <<<{RESET}\n")
 
     try:
         while True:
@@ -142,16 +145,19 @@ def record_slot_session(hamster, slot_num: str):
                     route_steps.append({"left": cur_left, "right": cur_right, "duration": dur})
                 break
 
-            # 💡 Enter = 집게 접기/닫기
-            if keyboard.is_pressed("enter"):
+            # 💡 엣지 트리거 (Edge Triggering) - 키를 꾹 누르고 있어도 단 1회만 동작!
+            curr_enter = keyboard.is_pressed("enter") or keyboard.is_pressed("c")
+            curr_space = keyboard.is_pressed("space") or keyboard.is_pressed("o")
+
+            if curr_enter and not prev_enter:
                 control_gripper(hamster, "close")
-                print(f"{CLEAR_LINE}  🦾 [집게 제어] Enter ➔ 집게 접기/닫기 (CLOSE)", end="", flush=True)
-                time.sleep(0.15)
-            # 💡 Spacebar = 집게 펼치기/열기
-            elif keyboard.is_pressed("space"):
+                print(f"\n  🦾 [집게 제어] Enter/C ➔ 집게 접기/닫기 (CLOSE)")
+            elif curr_space and not prev_space:
                 control_gripper(hamster, "open")
-                print(f"{CLEAR_LINE}  🦾 [집게 제어] Spacebar ➔ 집게 펼치기/열기 (OPEN)", end="", flush=True)
-                time.sleep(0.15)
+                print(f"\n  🦾 [집게 제어] Spacebar/O ➔ 집게 펼치기/열기 (OPEN)")
+
+            prev_enter = curr_enter
+            prev_space = curr_space
 
             new_left, new_right, label = get_steer(keyboard)
 
@@ -199,7 +205,7 @@ def record_slot_session(hamster, slot_num: str):
 
 def main():
     print(f"\n{BOLD}{'='*65}")
-    print("  🐹 쓰레기 4종 위치 번호별 지정 저장 도구 (v6.1 키보드 집게 매핑)")
+    print("  🐹 쓰레기 4종 위치 번호별 지정 저장 도구 (v6.3 엣지트리거)")
     print(f"{'='*65}{RESET}\n")
 
     print("[INFO] 햄스터 로봇 연결 중...")

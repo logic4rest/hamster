@@ -1,9 +1,8 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v6.2 쓰레기 감지 시 Enter 집게접기 확인 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v6.3 잔상 키 엣지 트리가 방지 에디션)
 ====================================================================================================
-- [유저 요청 완벽 반영] 쓰레기 감지 시 "햄스터봇이 잡을 수 있는지" 안내하고, Enter를 누르면 집게를 접어 수거 이동
-- Enter(엔터) 키 = 집게 접기 & 수거 이동 확정
-- Spacebar / ESC 키 = 스킵 및 다음 감지 대기
+- [버그 완전 해결] 슬롯 선택 Enter 키 잔상으로 인한 조종 루프 멈춤 현상 100% 차단
+- 엣지 트리거(Edge-Trigger) 적용: Enter / C = 집게 접기(CLOSE), Spacebar / O = 집게 펼치기(OPEN)
 - Q 키 또는 ESC = 위치 학습 완주 및 0.00cm 대칭 정밀 역주행 복귀
 - 0번 누를 시 웹캠 AI 실시간 인식 및 30~60 FPS 화면 렌더링 켜짐
 
@@ -323,21 +322,22 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
 
 
 def record_single_slot(hamster, slot_choice: str):
-    """지정된 슬롯 번호(1~4) 위치 화살표 조종 저장 세션 (Enter: 집게 접기, Spacebar: 집게 펼치기)"""
+    """지정된 슬롯 번호(1~4) 위치 화살표 조종 저장 세션 (엣지 트리거 키 릴리즈 패치)"""
     slot_name = NUMBERED_SLOTS.get(slot_choice, "종이")
     print(f"\n" + "=" * 65)
     print(f"  🎮 [슬롯 {slot_choice}번 '{slot_name}'] 위치 키보드 조종 저장")
     print("  -------------------------------------------------------------")
     print("  - 🕹️ 화살표 키(↑, ↓, ←, →): 로봇 이동 주행")
-    print("  - 🦾 Enter (엔터): 실물 집게 접기 / 닫기 (CLOSE)")
-    print("  - 🦾 Spacebar (스페이스바): 실물 집게 펼치기 / 열기 (OPEN)")
+    print("  - 🦾 Enter 또는 C: 실물 집게 접기 / 닫기 (CLOSE)")
+    print("  - 🦾 Spacebar 또는 O: 실물 집게 펼치기 / 열기 (OPEN)")
     print("  - 🏁 Q 키 또는 ESC: 도착 완주 및 0.00cm 정밀 역주행 복귀 저장")
     print("=" * 65 + "\n")
 
     flush_console_input()
-    while keyboard.is_pressed("q") or keyboard.is_pressed("esc"):
+    print("  [안내] 키 떼어짐 안전 확인 중...")
+    while keyboard.is_pressed("enter") or keyboard.is_pressed("space") or keyboard.is_pressed("q") or keyboard.is_pressed("esc"):
         time.sleep(0.05)
-    time.sleep(0.3)
+    time.sleep(0.2)
 
     status_hud.update_status(motion=f"🎮 [{slot_choice}번 {slot_name}] 키보드 조종 중")
     hamster.leds("yellow", "yellow")
@@ -349,7 +349,10 @@ def record_single_slot(hamster, slot_choice: str):
     step_start_time = time.time()
     speed = 35
 
-    print(f">>> [조종 중] Enter:집게접기 | Spacebar:집게펼치기 | Q 또는 ESC:도착완료저장 <<<\n")
+    prev_enter = False
+    prev_space = False
+
+    print(f">>> [조종 중] Enter/C:집게접기 | Space/O:집게펼치기 | Q/ESC:도착완료저장 <<<\n")
 
     try:
         while True:
@@ -360,16 +363,19 @@ def record_single_slot(hamster, slot_choice: str):
                     steps.append({"left": cur_left, "right": cur_right, "duration": dur})
                 break
 
-            # 💡 Enter = 집게 접기/닫기
-            if keyboard.is_pressed("enter"):
+            # 💡 [버그 완전 해결] 엣지 트리거(Edge Triggering) - 키를 꾹 누르고 있어도 단 1회만 동작!
+            curr_enter = keyboard.is_pressed("enter") or keyboard.is_pressed("c")
+            curr_space = keyboard.is_pressed("space") or keyboard.is_pressed("o")
+
+            if curr_enter and not prev_enter:
                 control_physical_gripper(hamster, "close")
-                print(f"{CLEAR_LINE}  🦾 [집게 제어] Enter 입력 ➔ 집게 접기/닫기 (CLOSE)", end="", flush=True)
-                time.sleep(0.15)
-            # 💡 Spacebar = 집게 펼치기/열기
-            elif keyboard.is_pressed("space"):
+                print(f"\n  🦾 [집게 제어] Enter/C 입력 ➔ 집게 접기/닫기 (CLOSE)")
+            elif curr_space and not prev_space:
                 control_physical_gripper(hamster, "open")
-                print(f"{CLEAR_LINE}  🦾 [집게 제어] Spacebar 입력 ➔ 집게 펼치기/열기 (OPEN)", end="", flush=True)
-                time.sleep(0.15)
+                print(f"\n  🦾 [집게 제어] Spacebar/O 입력 ➔ 집게 펼치기/열기 (OPEN)")
+
+            prev_enter = curr_enter
+            prev_space = curr_space
 
             new_left, new_right = 0, 0
             if keyboard.is_pressed("shift"):
@@ -608,7 +614,7 @@ def open_camera():
 
 
 def main():
-    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.2 집게접기 엔터 확인)")
+    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.3 엣지트리거)")
 
     print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
     routes_summary = []

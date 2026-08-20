@@ -1,33 +1,5 @@
 [
   {
-    "timestamp": "2026-08-19 21:39:46",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 지정 슬롯 자율주행 실행 (v5.0 단일패스 HUD)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:40:46",
-    "event_type": "WAYPOINT_SAVED",
-    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계 오차보정)",
-    "extra": {
-      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
-    }
-  },
-  {
-    "timestamp": "2026-08-19 21:42:21",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 지정 슬롯 자율주행 실행 (v5.0 단일패스 HUD)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:43:01",
-    "event_type": "WAYPOINT_SAVED",
-    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계 오차보정)",
-    "extra": {
-      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260819\\1_종이.json"
-    }
-  },
-  {
     "timestamp": "2026-08-19 21:43:45",
     "event_type": "SYSTEM_START",
     "message": "AI 쓰레기 4종 지정 슬롯 자율주행 실행 (v5.0 단일패스 HUD)",
@@ -626,5 +598,31 @@
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
     "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:28:38",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.2 집게접기 엔터 확인)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:29:49",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.2 집게접기 엔터 확인)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:31:07",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.2 집게접기 엔터 확인)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:34:19",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (23단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\1_종이.json"
+    }
   }
 ]
