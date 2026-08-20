@@ -1,35 +1,5 @@
 [
   {
-    "timestamp": "2026-08-20 07:22:22",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:22:24",
-    "event_type": "SYSTEM_STOP",
-    "message": "프로그램 정상 종료",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:22:59",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.1 키보드 집게제어)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:23:16",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_072316_종이팩.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:23:16",
-    "event_type": "SORTING_START",
-    "message": "분리배출 확정 시퀀스 시작: '종이팩' (신뢰도: 0.90)",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-20 07:23:18",
     "event_type": "AUTONOMOUS_NAV",
     "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
@@ -617,6 +587,36 @@
   },
   {
     "timestamp": "2026-08-20 20:50:28",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:13:04",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 감지 ➔ 바로주행X ➔ 집게열고 4초대기 ➔ 집게닫고 주행 (v7.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:14:22",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_211422_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:14:22",
+    "event_type": "SORTING_START",
+    "message": "4초 집게열림 거치대기 수거 시퀀스 시작: '종이' (신뢰도: 0.96)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:14:29",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:14:37",
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
     "extra": {}
