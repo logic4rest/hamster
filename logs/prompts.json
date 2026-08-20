@@ -1,41 +1,5 @@
 [
   {
-    "timestamp": "2026-08-19 21:48:44",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:6, 우:37) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:48:46",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:2, 우:38) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:48:49",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:81, 우:84) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:48:51",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:68, 우:81) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:49:12",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:49:18",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260819_214918_종이.jpg",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-19 21:49:18",
     "event_type": "SORTING_START",
     "message": "분리배출 확정 시퀀스 시작: '종이' (신뢰도: 0.95)",
@@ -619,6 +583,42 @@
   },
   {
     "timestamp": "2026-08-20 18:40:58",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:45:03",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 4초 지속 인식 감지 자동 분리배출 (v6.4)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:45:39",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_184539_종이팩.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:45:39",
+    "event_type": "SORTING_START",
+    "message": "자동 분리배출 운반 시퀀스 시작: '종이팩' (신뢰도: 0.96)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:45:40",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:46:14",
+    "event_type": "SORTING_COMPLETE",
+    "message": "분리배출 및 시작위치 복귀 완료: [2번 종이팩]",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 18:46:18",
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
     "extra": {}
