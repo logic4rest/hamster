@@ -1,48 +1,38 @@
 {
   "slot": "3",
   "name": "플라스틱/페트병",
-  "date": "2026-08-20 00:04:48",
-  "trajectory_steps": 8,
+  "date": "2026-08-20 20:11:02",
+  "trajectory_steps": 6,
   "trajectory": [
     {
       "left": 35,
       "right": 35,
-      "duration": 5.580498933792114
+      "duration": 5.651371240615845
     },
     {
       "left": 35,
       "right": -35,
-      "duration": 0.9505794048309326
+      "duration": 0.831712007522583
+    },
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 9.91024923324585
+    },
+    {
+      "left": 35,
+      "right": -35,
+      "duration": 1.0375924110412598
     },
     {
       "left": -35,
       "right": 35,
-      "duration": 0.12465667724609375
+      "duration": 0.08264303207397461
     },
     {
       "left": 35,
       "right": 35,
-      "duration": 9.579351425170898
-    },
-    {
-      "left": 35,
-      "right": 16.0,
-      "duration": 0.28994274139404297
-    },
-    {
-      "left": 35,
-      "right": 35,
-      "duration": 5.958549737930298
-    },
-    {
-      "left": 35,
-      "right": -35,
-      "duration": 0.7841694355010986
-    },
-    {
-      "left": 35,
-      "right": 35,
-      "duration": 3.188447952270508
+      "duration": 3.12593150138855
     }
   ]
 }

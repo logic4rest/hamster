@@ -1,33 +1,33 @@
 {
   "slot": "1",
   "name": "종이",
-  "date": "2026-08-20 18:39:37",
+  "date": "2026-08-20 20:09:08",
   "trajectory_steps": 5,
   "trajectory": [
     {
       "left": 35,
       "right": 35,
-      "duration": 5.396254062652588
+      "duration": 5.695181369781494
     },
     {
       "left": 35,
       "right": -35,
-      "duration": 0.8703160285949707
+      "duration": 0.8308978080749512
     },
     {
       "left": 35,
       "right": 35,
-      "duration": 4.07381010055542
+      "duration": 4.523579120635986
     },
     {
       "left": 35,
       "right": -35,
-      "duration": 0.9560644626617432
+      "duration": 0.9656665325164795
     },
     {
       "left": 35,
       "right": 35,
-      "duration": 3.15995454788208
+      "duration": 4.16894793510437
     }
   ]
 }

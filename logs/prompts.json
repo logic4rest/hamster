@@ -1,65 +1,5 @@
 [
   {
-    "timestamp": "2026-08-19 21:49:18",
-    "event_type": "SORTING_START",
-    "message": "분리배출 확정 시퀀스 시작: '종이' (신뢰도: 0.95)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:49:20",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 자율주행 실행 (9단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:49:23",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:16, 우:40) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:49:27",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:64, 우:54) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:49:31",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:37, 우:8) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:49:38",
-    "event_type": "OBSTACLE_DETECTED",
-    "message": "전방 장애물 탐지 (좌:46, 우:18) -> 회피 우회 시작",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:49:42",
-    "event_type": "SYSTEM_STOP",
-    "message": "프로그램 정상 종료",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:55:16",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 사전 저장 경로 자율주행 실행 (v5.1)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:55:39",
-    "event_type": "SYSTEM_STOP",
-    "message": "프로그램 정상 종료",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-19 21:55:43",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 사전 저장 경로 자율주행 실행 (v5.1)",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-19 21:56:00",
     "event_type": "CAPTURE_SAVED",
     "message": "이미지 자동 캡처 파티셔닝 저장: 20260819_215600_캔.jpg",
@@ -619,6 +559,74 @@
   },
   {
     "timestamp": "2026-08-20 18:46:18",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:07:38",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 4초 지속 인식 감지 자동 분리배출 (v6.5 집게 펼침 대기)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:08:30",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 4초 지속 인식 감지 자동 분리배출 (v6.5 집게 펼침 대기)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:09:08",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-20 20:09:54",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [2] '종이팩' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\2_종이팩.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-20 20:11:02",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (6단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\3_플라스틱_페트병.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-20 20:12:05",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [4] '캔' 위치 저장 완료 (7단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260820\\4_캔.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-20 20:13:59",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_201359_캔.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:13:59",
+    "event_type": "SORTING_START",
+    "message": "자동 분리배출 운반 시퀀스 시작: '캔' (신뢰도: 0.86)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:14:01",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (7단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:14:17",
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
     "extra": {}

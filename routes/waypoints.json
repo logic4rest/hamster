@@ -2,304 +2,294 @@
   "1_종이": {
     "slot": "1",
     "name": "종이",
-    "date": "2026-08-20 18:39:37",
+    "date": "2026-08-20 20:09:08",
     "trajectory_steps": 5,
     "trajectory": [
       {
         "left": 35,
         "right": 35,
-        "duration": 5.396254062652588
+        "duration": 5.695181369781494
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.8703160285949707
+        "duration": 0.8308978080749512
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 4.07381010055542
+        "duration": 4.523579120635986
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.9560644626617432
+        "duration": 0.9656665325164795
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 3.15995454788208
+        "duration": 4.16894793510437
       }
     ]
   },
   "종이": {
     "slot": "1",
     "name": "종이",
-    "date": "2026-08-20 18:39:37",
+    "date": "2026-08-20 20:09:08",
     "trajectory_steps": 5,
     "trajectory": [
       {
         "left": 35,
         "right": 35,
-        "duration": 5.396254062652588
+        "duration": 5.695181369781494
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.8703160285949707
+        "duration": 0.8308978080749512
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 4.07381010055542
+        "duration": 4.523579120635986
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.9560644626617432
+        "duration": 0.9656665325164795
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 3.15995454788208
+        "duration": 4.16894793510437
       }
     ]
   },
   "2_종이팩": {
     "slot": "2",
     "name": "종이팩",
-    "date": "2026-08-20 00:03:56",
-    "trajectory_steps": 6,
+    "date": "2026-08-20 20:09:54",
+    "trajectory_steps": 5,
     "trajectory": [
       {
         "left": 35,
         "right": 35,
-        "duration": 5.570897579193115
+        "duration": 6.064267158508301
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.9487729072570801
-      },
-      {
-        "left": -35,
-        "right": 35,
-        "duration": 0.0829782485961914
+        "duration": 0.9551072120666504
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 4.000358581542969
+        "duration": 4.335323810577393
       },
       {
         "left": -35,
         "right": 35,
-        "duration": 0.8255784511566162
+        "duration": 0.9483187198638916
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 4.29655909538269
+        "duration": 3.4868459701538086
       }
     ]
   },
   "종이팩": {
     "slot": "2",
     "name": "종이팩",
-    "date": "2026-08-20 00:03:56",
-    "trajectory_steps": 6,
+    "date": "2026-08-20 20:09:54",
+    "trajectory_steps": 5,
     "trajectory": [
       {
         "left": 35,
         "right": 35,
-        "duration": 5.570897579193115
+        "duration": 6.064267158508301
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.9487729072570801
-      },
-      {
-        "left": -35,
-        "right": 35,
-        "duration": 0.0829782485961914
+        "duration": 0.9551072120666504
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 4.000358581542969
+        "duration": 4.335323810577393
       },
       {
         "left": -35,
         "right": 35,
-        "duration": 0.8255784511566162
+        "duration": 0.9483187198638916
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 4.29655909538269
+        "duration": 3.4868459701538086
       }
     ]
   },
   "3_플라스틱/페트병": {
     "slot": "3",
     "name": "플라스틱/페트병",
-    "date": "2026-08-20 00:04:48",
-    "trajectory_steps": 8,
+    "date": "2026-08-20 20:11:02",
+    "trajectory_steps": 6,
     "trajectory": [
       {
         "left": 35,
         "right": 35,
-        "duration": 5.580498933792114
+        "duration": 5.651371240615845
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.9505794048309326
+        "duration": 0.831712007522583
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 9.91024923324585
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 1.0375924110412598
       },
       {
         "left": -35,
         "right": 35,
-        "duration": 0.12465667724609375
+        "duration": 0.08264303207397461
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 9.579351425170898
-      },
-      {
-        "left": 35,
-        "right": 16.0,
-        "duration": 0.28994274139404297
-      },
-      {
-        "left": 35,
-        "right": 35,
-        "duration": 5.958549737930298
-      },
-      {
-        "left": 35,
-        "right": -35,
-        "duration": 0.7841694355010986
-      },
-      {
-        "left": 35,
-        "right": 35,
-        "duration": 3.188447952270508
+        "duration": 3.12593150138855
       }
     ]
   },
   "플라스틱/페트병": {
     "slot": "3",
     "name": "플라스틱/페트병",
-    "date": "2026-08-20 00:04:48",
-    "trajectory_steps": 8,
+    "date": "2026-08-20 20:11:02",
+    "trajectory_steps": 6,
     "trajectory": [
       {
         "left": 35,
         "right": 35,
-        "duration": 5.580498933792114
+        "duration": 5.651371240615845
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.9505794048309326
+        "duration": 0.831712007522583
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 9.91024923324585
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 1.0375924110412598
       },
       {
         "left": -35,
         "right": 35,
-        "duration": 0.12465667724609375
+        "duration": 0.08264303207397461
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 9.579351425170898
-      },
-      {
-        "left": 35,
-        "right": 16.0,
-        "duration": 0.28994274139404297
-      },
-      {
-        "left": 35,
-        "right": 35,
-        "duration": 5.958549737930298
-      },
-      {
-        "left": 35,
-        "right": -35,
-        "duration": 0.7841694355010986
-      },
-      {
-        "left": 35,
-        "right": 35,
-        "duration": 3.188447952270508
+        "duration": 3.12593150138855
       }
     ]
   },
   "4_캔": {
     "slot": "4",
     "name": "캔",
-    "date": "2026-08-19 23:45:25",
-    "trajectory_steps": 5,
+    "date": "2026-08-20 20:12:05",
+    "trajectory_steps": 7,
     "trajectory": [
       {
         "left": 35,
         "right": 35,
-        "duration": 5.256484031677246
+        "duration": 6.198941707611084
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.8226356506347656
+        "duration": 0.8332364559173584
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 9.657256364822388
+        "duration": 2.745650291442871
+      },
+      {
+        "left": 35,
+        "right": 16.0,
+        "duration": 0.16799044609069824
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 7.381436586380005
       },
       {
         "left": -35,
         "right": 35,
-        "duration": 0.834082841873169
+        "duration": 0.9545748233795166
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 3.607081890106201
+        "duration": 3.738076686859131
       }
     ]
   },
   "캔": {
     "slot": "4",
     "name": "캔",
-    "date": "2026-08-19 23:45:25",
-    "trajectory_steps": 5,
+    "date": "2026-08-20 20:12:05",
+    "trajectory_steps": 7,
     "trajectory": [
       {
         "left": 35,
         "right": 35,
-        "duration": 5.256484031677246
+        "duration": 6.198941707611084
       },
       {
         "left": 35,
         "right": -35,
-        "duration": 0.8226356506347656
+        "duration": 0.8332364559173584
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 9.657256364822388
+        "duration": 2.745650291442871
+      },
+      {
+        "left": 35,
+        "right": 16.0,
+        "duration": 0.16799044609069824
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 7.381436586380005
       },
       {
         "left": -35,
         "right": 35,
-        "duration": 0.834082841873169
+        "duration": 0.9545748233795166
       },
       {
         "left": 35,
         "right": 35,
-        "duration": 3.607081890106201
+        "duration": 3.738076686859131
       }
     ]
   }
