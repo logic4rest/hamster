@@ -1,59 +1,5 @@
 [
   {
-    "timestamp": "2026-08-20 07:21:03",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:21:10",
-    "event_type": "SYSTEM_STOP",
-    "message": "프로그램 정상 종료",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:21:21",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.1 키보드 집게제어)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:21:45",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_072145_종이팩.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:21:45",
-    "event_type": "SORTING_START",
-    "message": "분리배출 확정 시퀀스 시작: '종이팩' (신뢰도: 0.92)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:21:47",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:22:20",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 복귀 완료: [2번 종이팩]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:22:21",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_072221_종이팩.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:22:21",
-    "event_type": "SORTING_START",
-    "message": "분리배출 확정 시퀀스 시작: '종이팩' (신뢰도: 0.88)",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-20 07:22:22",
     "event_type": "AUTONOMOUS_NAV",
     "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
@@ -617,6 +563,60 @@
   },
   {
     "timestamp": "2026-08-20 20:42:11",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:48:06",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4종 감지 ➔ 집게펼침 6초 거치대기 ➔ 집게오므림 ➔ 자율이동 (v7.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:49:13",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_204913_종이팩.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:49:13",
+    "event_type": "SORTING_START",
+    "message": "6초 쓰레기거치대기 수거 시퀀스 시작: '종이팩' (신뢰도: 0.90)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:49:23",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:49:56",
+    "event_type": "SORTING_COMPLETE",
+    "message": "분리배출 및 시작위치 복귀 완료: [2번 종이팩]",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:49:56",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_204956_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:49:56",
+    "event_type": "SORTING_START",
+    "message": "6초 쓰레기거치대기 수거 시퀀스 시작: '종이' (신뢰도: 0.94)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:50:06",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 20:50:28",
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
     "extra": {}

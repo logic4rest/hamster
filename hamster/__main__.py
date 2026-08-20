@@ -1,12 +1,12 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v7.0 쓰레기 감지 ➔ 집게 펼치기 ➔ 6초 거치 대기 ➔ 집게 오므리기 ➔ 수거함 주행 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v7.1 감지 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 비로소 수거함 주행 에디션)
 ====================================================================================================
 - [유저 요구사항 100% 완벽 반영]
-  1. 쓰레기가 인식되면 바로 주행하지 않고, 즉시 집게를 쫙 펼침(OPEN)
-  2. 사람이 쓰레기를 놓을 수 있도록 6초 동안 제자리에 정지하여 거치 대기 (카운트다운 렌더링)
-  3. 6초 거치 대기가 끝난 후 집게를 꽉 오므려/닫아(CLOSE) 포획
-  4. 집게로 쓰레기를 움켜잡은 후 비로소 지정된 수거함 슬롯(1~4번)으로 주행 이동
-  5. 수거함 도착 완료 시 집게를 펼쳐(OPEN) 쓰레기 투입 후 0.00cm 정밀 대칭 복귀 (집게 핀 상태 유지)
+  1. 쓰레기가 감지되어도 바로 수거함으로 주행을 시작하지 않음
+  2. 감지 즉시 집게를 열고(OPEN) 제자리에 정지하여 4초간 기다림 (카운트다운 시각 오버레이 표시)
+  3. 4초 대기가 끝난 후 집게를 꽉 닫아(CLOSE) 쓰레기를 포획
+  4. 집게를 닫은 후 비로소 지정된 수거함 슬롯(1~4번)으로 주행 시작
+  5. 수거함 도착 시 집게를 열어(OPEN) 투입 후 0.00cm 정밀 대칭 복귀 (집게 열린 상태 대기)
 
 실행 방법:
     uv run hamster
@@ -55,7 +55,7 @@ STATS_PATH   = PROJECT_ROOT / "stats.json"
 CONFIDENCE_THRESHOLD       = 0.8   # 이 값 미만이면 폐기/대기 (없음 처리)
 REQUIRED_FRAMES            = 2     # 연속 2프레임 감지 시 즉시 거치 대기 발동
 COUNTDOWN_SEC              = 2     # 시작 전 카운트다운 초
-WAIT_PLACEMENT_SEC         = 6.0   # 쓰레기 6초 거치 대기 시간
+WAIT_PLACEMENT_SEC         = 4.0   # 쓰레기 4초 집게열림 대기 시간
 
 # ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
 CATEGORY_MAP = {
@@ -101,12 +101,12 @@ COLOR_BGR_MAP = {
 
 # 올바른 분리배출 안내문
 RECYCLING_TIPS = {
-    "플라스틱/페트병": "💡 [3번 패트병 슬롯] 감지 ➔ 집게 펼침 6초 대기 ➔ 집게 오므리기 ➔ 수거함 이동",
-    "캔": "💡 [4번 캔 슬롯] 감지 ➔ 집게 펼침 6초 대기 ➔ 집게 오므리기 ➔ 수거함 이동",
-    "종이": "💡 [1번 종이 슬롯] 감지 ➔ 집게 펼침 6초 대기 ➔ 집게 오므리기 ➔ 수거함 이동",
-    "종이팩": "💡 [2번 종이팩 슬롯] 감지 ➔ 집게 펼침 6초 대기 ➔ 집게 오므리기 ➔ 수거함 이동",
+    "플라스틱/페트병": "💡 [3번 패트병 슬롯] 감지 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 수거함 이동",
+    "캔": "💡 [4번 캔 슬롯] 감지 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 수거함 이동",
+    "종이": "💡 [1번 종이 슬롯] 감지 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 수거함 이동",
+    "종이팩": "💡 [2번 종이팩 슬롯] 감지 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 수거함 이동",
     "이물질/경고": "🚨 오배출 경고! 이물질을 먼저 세척하고 라벨을 떼어 버려주세요!",
-    "없음": "💡 쓰레기를 햄스터봇에 비추면 바로 주행하지 않고 집게를 펼쳐 6초간 놓을 시간을 줍니다.",
+    "없음": "💡 쓰레기를 비추면 바로 주행하지 않고 집게를 열고 4초간 기다린 후 집게를 닫아 이동합니다.",
 }
 
 
@@ -141,14 +141,14 @@ def control_physical_gripper(hamster, action: str):
             elif hasattr(hamster, "output_a"):
                 hamster.output_a(0)
             status_hud.update_status(gripper="펼침/핀 상태 (OPEN)")
-            time.sleep(0.7)  # 💡 0.7초 집게 핀 상태 확실한 동작 보장!
+            time.sleep(0.7)  # 💡 0.7초 집게 열림 확실한 동작 보장!
         elif action == "close" or action == "grip":
             if hasattr(hamster, "close_gripper"):
                 hamster.close_gripper()
             elif hasattr(hamster, "output_a"):
                 hamster.output_a(100)
             status_hud.update_status(gripper="접힘/오므림 (CLOSE)")
-            time.sleep(0.7)  # 💡 0.7초 집게 오므림 상태 확실한 동작 보장!
+            time.sleep(0.7)  # 💡 0.7초 집게 닫힘 확실한 동작 보장!
     except Exception:
         pass
 
@@ -241,7 +241,7 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
             cv2.rectangle(canvas, (x2, y1), (x2 + 30, y2), (0, 0, 255), -1)
             grip_label = f"🦾 [집게 제어] {gripper_status}"
             g_bg_color = (0, 0, 200)
-        elif "OPEN" in gripper_status or "핀" in gripper_status or "펼침" in gripper_status or "대기" in gripper_status:
+        elif "OPEN" in gripper_status or "핀" in gripper_status or "펼침" in gripper_status or "열고" in gripper_status or "대기" in gripper_status:
             cv2.rectangle(canvas, (x1 - 45, y1), (x1 - 25, y2), (0, 255, 0), 4)
             cv2.rectangle(canvas, (x2 + 25, y1), (x2 + 45, y2), (0, 255, 0), 4)
             grip_label = f"🦾 [집게 제어] {gripper_status}"
@@ -262,11 +262,11 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     # 3. 상단 중앙 카테고리 태그 바
     if clean_category != "없음":
         if category.startswith("★ 확정:"):
-            tag_text = f"★ [인식 완료] {clean_category} (집게 펼침 6초 거치 대기 중!)"
+            tag_text = f"★ [인식 완료] {clean_category} (집게 열고 4초 대기 중!)"
         else:
             tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}]"
     else:
-        tag_text = "쓰레기 감지 대기 중... (집게 핀 상태 OPEN 대기 중)"
+        tag_text = "쓰레기 감지 대기 중... (집게 열림 OPEN 대기)"
 
     text_draw_list.append((tag_text, (x1 + 10, y1 - 32), 18, color))
 
@@ -313,8 +313,8 @@ def record_single_slot(hamster, slot_choice: str):
     print(f"  🎮 [슬롯 {slot_choice}번 '{slot_name}'] 위치 키보드 조종 저장")
     print("  -------------------------------------------------------------")
     print("  - 🕹️ 화살표 키(↑, ↓, ←, →): 로봇 이동 주행")
-    print("  - 🦾 Enter 또는 C: 실물 집게 오므리기 / 닫기 (CLOSE)")
-    print("  - 🦾 Spacebar 또는 O: 실물 집게 펴기 / 열기 (OPEN)")
+    print("  - 🦾 Enter 또는 C: 실물 집게 닫기 / 오므리기 (CLOSE)")
+    print("  - 🦾 Spacebar 또는 O: 실물 집게 열기 / 펼치기 (OPEN)")
     print("  - 🏁 Q 키 또는 ESC: 도착 완주 및 0.00cm 정밀 역주행 복귀 저장")
     print("=" * 65 + "\n")
 
@@ -339,7 +339,7 @@ def record_single_slot(hamster, slot_choice: str):
     prev_enter = False
     prev_space = False
 
-    print(f">>> [조종 중] Enter/C:집게오므리기 | Space/O:집게펴기 | Q/ESC:도착완료저장 <<<\n")
+    print(f">>> [조종 중] Enter/C:집게닫기 | Space/O:집게열기 | Q/ESC:도착완료저장 <<<\n")
 
     try:
         while True:
@@ -354,10 +354,10 @@ def record_single_slot(hamster, slot_choice: str):
 
             if curr_enter and not prev_enter:
                 control_physical_gripper(hamster, "close")
-                print(f"\n  🦾 [집게 제어] Enter/C 입력 ➔ 집게 오므리기/닫기 (CLOSE)")
+                print(f"\n  🦾 [집게 제어] Enter/C 입력 ➔ 집게 닫기/오므리기 (CLOSE)")
             elif curr_space and not prev_space:
                 control_physical_gripper(hamster, "open")
-                print(f"\n  🦾 [집게 제어] Spacebar/O 입력 ➔ 집게 펴기/열기 (OPEN)")
+                print(f"\n  🦾 [집게 제어] Spacebar/O 입력 ➔ 집게 열기/펼치기 (OPEN)")
 
             prev_enter = curr_enter
             prev_space = curr_space
@@ -436,7 +436,7 @@ def initial_arrow_teach_session(hamster):
 
     while True:
         print("\n" + "=" * 65)
-        print("  🎮 [1단계] 쓰레기 4종 위치 번호별 지정 저장 모드 (집게 핀 상태 OPEN 대기)")
+        print("  🎮 [1단계] 쓰레기 4종 위치 번호별 지정 저장 모드 (집게 열림 OPEN 대기)")
         print("  -------------------------------------------------------------")
         print("  저장하고자 하는 수거함 번호를 선택해 주세요:")
         print("    [1] 📄 종이")
@@ -461,7 +461,7 @@ def initial_arrow_teach_session(hamster):
             time.sleep(0.5)
             control_physical_gripper(hamster, "open")
             time.sleep(0.5)
-            print("  ✅ 햄스터봇 집게 핀 상태(OPEN) 수거 대기 완료!\n")
+            print("  ✅ 햄스터봇 집게 열림(OPEN) 수거 대기 완료!\n")
             break
 
         if choice in ["1", "2", "3", "4"]:
@@ -474,9 +474,9 @@ def initial_arrow_teach_session(hamster):
 def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: float, stats: dict):
     """
     💡 [유저 요구사항 100% 완벽 반영]
-    인식 감지 ➔ 1. 집게 펼치기(OPEN) ➔ 2. 로봇 정지한 채 6초간 쓰레기 거치 대기 ➔ 3. 6초 후 집게 오므리기(CLOSE) ➔ 4. 비로소 수거함 주행 이동 ➔ 5. 집게 펼치기(OPEN) ➔ 6. 0.00cm 대칭 복귀
+    1. 감지 시 바로 수거함 주행 시작 X ➔ 2. 집게 열고 4초간 제자리 대기 ➔ 3. 4초 후 집게 닫기 ➔ 4. 비로소 수거함 주행 시작 ➔ 5. 집게 열기 ➔ 6. 0.00cm 대칭 복귀
     """
-    waypoint_manager.log_event("SORTING_START", f"6초 쓰레기거치대기 수거 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
+    waypoint_manager.log_event("SORTING_START", f"4초 집게열림 거치대기 수거 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
 
     slot_map = {
         "종이": "1",
@@ -496,27 +496,27 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
             if cam.check_key() == "esc":
                 break
 
-    # 1. 💡 쓰레기를 인식하면 일단 주행하지 않고 즉시 삐! 소리와 함께 집게를 쫙 펼침 (OPEN)!
-    print(f"\n  🤖 ['{mapped_category}' 감지!] 주행하지 않고 집게를 펼쳐 쓰레기를 놓으실 수 있도록 6초간 거치 대기합니다...")
+    # 1. 💡 쓰레기를 감지하면 바로 수거함 주행을 시작하지 않고, 제자리에 멈춰 삐! 소리와 함께 집게 열기 (OPEN)!
+    print(f"\n  🤖 ['{mapped_category}' 감지!] 바로 수거함 주행 시작 X ➔ 집게를 열고 4초간 대기합니다...")
     hamster.beep()
     control_physical_gripper(hamster, "open")
-    status_hud.update_status(motion=f"[{mapped_category}] 인식! 집게 펼치기 (OPEN)")
+    status_hud.update_status(motion=f"[{mapped_category}] 감지! 집게 열기 (OPEN)")
 
-    # 2. 💡 로봇이 제자리에 정지한 채 집게를 펼쳐 6초 동안 사람이 쓰레기를 놓을 시간을 줌 (6초 카운트다운)
+    # 2. 💡 제자리에 완전 정지하여 집게를 열고 4초 동안 사람이 쓰레기를 놓을 시간 부여 (4초 카운트다운)
     wait_start = time.time()
     while time.time() - wait_start < WAIT_PLACEMENT_SEC:
         rem_sec = max(0.0, WAIT_PLACEMENT_SEC - (time.time() - wait_start))
-        status_hud.update_status(motion=f"[{mapped_category}] 집게 펼치고 6초 거치 대기 중 ({rem_sec:.1f}s)")
-        update_screen(f"🦾 [{mapped_category}] 집게 펼침(OPEN)! 쓰레기를 놓아주세요 ({rem_sec:.1f}초 남음)", 0.1)
+        status_hud.update_status(motion=f"[{mapped_category}] 집게 열고 4초 대기 중 ({rem_sec:.1f}s)")
+        update_screen(f"🦾 [{mapped_category}] 집게 열림(OPEN)! 쓰레기를 놓아주세요 ({rem_sec:.1f}초 남음)", 0.1)
 
-    # 3. 💡 6초 거치 대기가 끝난 후 집게를 꽉 오므리기/닫기 (CLOSE) 쓰레기 포획!
-    print(f"  🦾 [6초 거치 대기 완료!] 집게 오므리기/닫기 (CLOSE) 쓰레기 포획 완료!")
+    # 3. 💡 4초 대기가 끝난 후 비로소 집게 닫기 (CLOSE) 쓰레기 포획!
+    print(f"  🦾 [4초 대기 완료!] 집게 닫기 (CLOSE) 쓰레기 포획 완료!")
     hamster.beep()
     control_physical_gripper(hamster, "close")
-    status_hud.update_status(motion="6초 거치 완료! 집게 오므리기 (CLOSE)")
-    update_screen("6초 거치 완료! 집게 오므리기 & 쓰레기 포획 (CLOSE)", 0.6)
+    status_hud.update_status(motion="4초 대기 완료! 집게 닫기 (CLOSE)")
+    update_screen("4초 대기 완료! 집게 닫기 & 쓰레기 포획 (CLOSE)", 0.6)
 
-    # 4. 💡 쓰레기를 꽉 잡은 후 비로소 지정된 수거함 슬롯(1~4번)으로 주행 이동!
+    # 4. 💡 집게를 닫은 후 비로소 지정된 수거함 슬롯(1~4번)으로 주행 시작!
     named_route = waypoint_manager.get_waypoint(mapped_category)
 
     if named_route:
@@ -539,11 +539,11 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
 
     hamster.stop()
 
-    # 5. 수거함 도착 완료 시 실물 집게 펴기 / 열기 (OPEN / RELEASE) 쓰레기 투입!
-    print(f"  🎉 [{slot_id}번 {mapped_category} 수거함 도착] 실물 집게 펴기 (OPEN / RELEASE) 쓰레기 투입 완료!")
+    # 5. 수거함 도착 완료 시 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입!
+    print(f"  🎉 [{slot_id}번 {mapped_category} 수거함 도착] 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입 완료!")
     control_physical_gripper(hamster, "open")
-    status_hud.update_status(motion=f"[{mapped_category}] 수거함 도착! 집게 펴기 (RELEASE)")
-    update_screen("수거함 도착! 집게 펴기 투입 완료 (OPEN)", 0.8)
+    status_hud.update_status(motion=f"[{mapped_category}] 수거함 도착! 집게 열기 (RELEASE)")
+    update_screen("수거함 도착! 집게 열기 투입 완료 (OPEN)", 0.8)
 
     # 6. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
     if named_route:
@@ -556,7 +556,7 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
 
         hamster.stop()
 
-    # 7. 복귀 완료 후 다음 감지를 위해 집게를 항상 핀 상태(OPEN)로 준비
+    # 7. 복귀 완료 후 다음 감지를 위해 집게를 항상 열린 상태(OPEN)로 준비
     control_physical_gripper(hamster, "open")
     status_hud.update_status(motion="대기 중 (Standby - OPEN)")
     update_screen("시작 위치 복귀 완료! 다음 쓰레기 감지 대기 중 (OPEN)...", 0.5)
@@ -580,7 +580,7 @@ def open_camera():
 
 
 def main():
-    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 감지 ➔ 집게펼침 6초 거치대기 ➔ 집게오므림 ➔ 자율이동 (v7.0)")
+    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 감지 ➔ 바로주행X ➔ 집게열고 4초대기 ➔ 집게닫고 주행 (v7.1)")
 
     print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
     routes_summary = []
@@ -620,13 +620,13 @@ def main():
     cam.count_down(COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [AI 쓰레기 4종 감지 ➔ 집게펼치기 ➔ 6초 거치대기 ➔ 집게오므리기 ➔ 수거함 주행 ➔ 복귀]")
-    print("  - 🦾 초기 및 대기 상태: 실물 집게 핀 상태(OPEN) 수거 대기 유지")
+    print("  [AI 쓰레기 감지 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 수거함 주행 ➔ 복귀]")
+    print("  - 🦾 초기 및 대기 상태: 실물 집게 열림(OPEN) 수거 대기 유지")
     print("  - [1] 종이 ➔ 1번 수거함 이동")
     print("  - [2] 종이팩 ➔ 2번 수거함 이동")
     print("  - [3] 패트병(플라스틱) ➔ 3번 수거함 이동")
     print("  - [4] 캔 ➔ 4번 수거함 이동")
-    print("  - 🤖 감지 시: 주행하지 않고 집게 펼치기(OPEN) ➔ 6초간 거치 대기 ➔ 집게 오므리기(CLOSE) ➔ 수거함 이동!")
+    print("  - 🤖 감지 시: 바로 주행하지 않고 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 닫기(CLOSE) ➔ 비로소 주행!")
     print("  - ↩️ 정밀 물리 대칭 엔진: 배출 후 1:1 대칭 역주행으로 시작 위치 오차 0.00cm 완벽 복귀!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
@@ -659,7 +659,7 @@ def main():
 
                 image = draw_hud_and_bbox(image, mapped_category, conf, consecutive_count, REQUIRED_FRAMES, stats)
 
-                # 💡 쓰레기를 감지하면 바로 주행하지 않고 1.집게펼침 ➔ 2.6초 거치대기 ➔ 3.집게오므림 ➔ 4.비로소 수거함 주행!
+                # 💡 쓰레기를 감지하면 바로 주행 시작 X ➔ 1.집게열기 ➔ 2.4초 대기 ➔ 3.집게닫기 ➔ 4.비로소 주행!
                 if consecutive_count >= REQUIRED_FRAMES:
                     stats[mapped_category] = stats.get(mapped_category, 0) + 1
                     save_stats(stats)
@@ -673,7 +673,7 @@ def main():
                     led_spec = LED_MAP.get(mapped_category, ("off", "off"))
                     set_robot_led(hamster, led_spec)
 
-                    # 💡 감지 ➔ 집게펼치기 ➔ 6초 정지 거치대기 ➔ 집게오므리기 ➔ 수거함 자율이동 ➔ 집게 펴기 ➔ 0.00cm 복귀!
+                    # 💡 감지 ➔ 바로주행X ➔ 집게열기 ➔ 4초간 제자리 대기 ➔ 집게닫기 ➔ 비로소 수거함 주행 ➔ 집게열기 ➔ 복귀!
                     operate_gripper_and_transport(hamster, cam, mapped_category, conf, stats)
 
                     set_robot_led(hamster, ("off", "off"))
