@@ -504,7 +504,18 @@ def initial_arrow_teach_session(hamster):
         choice = input("\n👉 선택할 번호를 입력 후 Enter를 누르세요 (1, 2, 3, 4 지정 선택 또는 0 입력 후 Enter) > ").strip()
 
         if choice == "0":
-            print("\n  [완료] 수거함 위치 설정을 마치고 웹캠 카메라 감지를 시작합니다!\n")
+            print("\n  [완료] 수거함 위치 설정을 마치고 웹캠 카메라 감지를 시작합니다!")
+            print("  🦾 햄스터봇 집게 초기화 점검: 오므렸다 폈다 (닫기 ➔ 열기 ➔ 닫기 ➔ 열기 대기)...")
+            hamster.beep()
+            control_physical_gripper(hamster, "close")
+            time.sleep(0.4)
+            control_physical_gripper(hamster, "open")
+            time.sleep(0.4)
+            control_physical_gripper(hamster, "close")
+            time.sleep(0.4)
+            control_physical_gripper(hamster, "open")
+            time.sleep(0.3)
+            print("  ✅ 햄스터봇 집게 작동 점검 완료!\n")
             break
 
         if choice in ["1", "2", "3", "4"]:
