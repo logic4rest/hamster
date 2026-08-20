@@ -1,8 +1,9 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v6.1 수동 집게 키 매핑 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v6.2 쓰레기 감지 시 Enter 집게접기 확인 에디션)
 ====================================================================================================
-- [유저 요청 완벽 반영] Enter(엔터) 키 = 실물 집게 접기/닫기 (CLOSE)
-- [유저 요청 완벽 반영] Spacebar(스페이스바) 키 = 실물 집게 펼치기/열기 (OPEN)
+- [유저 요청 완벽 반영] 쓰레기 감지 시 "햄스터봇이 잡을 수 있는지" 안내하고, Enter를 누르면 집게를 접어 수거 이동
+- Enter(엔터) 키 = 집게 접기 & 수거 이동 확정
+- Spacebar / ESC 키 = 스킵 및 다음 감지 대기
 - Q 키 또는 ESC = 위치 학습 완주 및 0.00cm 대칭 정밀 역주행 복귀
 - 0번 누를 시 웹캠 AI 실시간 인식 및 30~60 FPS 화면 렌더링 켜짐
 
@@ -96,12 +97,12 @@ COLOR_BGR_MAP = {
 
 # 올바른 분리배출 안내문
 RECYCLING_TIPS = {
-    "플라스틱/페트병": "💡 [3번 패트병 슬롯 이동] 저장된 3번 위치 경로로 100% 정밀 자율이동!",
-    "캔": "💡 [4번 캔 슬롯 이동] 저장된 4번 위치 경로로 100% 정밀 자율이동!",
-    "종이": "💡 [1번 종이 슬롯 이동] 저장된 1번 위치 경로로 100% 정밀 자율이동!",
-    "종이팩": "💡 [2번 종이팩 슬롯 이동] 저장된 2번 위치 경로로 100% 정밀 자율이동!",
+    "플라스틱/페트병": "💡 [3번 패트병 슬롯 이동] 잡을 수 있다면 Enter를 누르세요!",
+    "캔": "💡 [4번 캔 슬롯 이동] 잡을 수 있다면 Enter를 누르세요!",
+    "종이": "💡 [1번 종이 슬롯 이동] 잡을 수 있다면 Enter를 누르세요!",
+    "종이팩": "💡 [2번 종이팩 슬롯 이동] 잡을 수 있다면 Enter를 누르세요!",
     "이물질/경고": "🚨 오배출 경고! 이물질을 먼저 세척하고 라벨을 떼어 버려주세요!",
-    "없음": "💡 쓰레기를 카메라 중앙에 비춰주세요. (Enter:집게접기, Space:집게펼치기)",
+    "없음": "💡 쓰레기를 카메라 중앙에 비춰주세요. (감지 시 Enter를 눌러 집게 접기)",
 }
 
 
@@ -236,15 +237,19 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     # 2. 상태 오버레이 배경 박스
     if gripper_status:
         status_hud.update_status(motion=gripper_status)
-        if "GRIP" in gripper_status or "접기" in gripper_status or "닫기" in gripper_status:
+        if "Enter" in gripper_status or "잡을 수 있다면" in gripper_status or "접기" in gripper_status:
+            cv2.rectangle(canvas, (x1 - 40, y2 + 10), (x2 + 40, y2 + 45), (0, 0, 220), -1)
+            grip_label = f"❓ [Enter 누름 ➔ 집게 접기] {gripper_status}"
+            g_bg_color = (0, 0, 200)
+        elif "GRIP" in gripper_status or "포획" in gripper_status:
             cv2.rectangle(canvas, (x1 - 30, y1), (x1, y2), (0, 0, 255), -1)
             cv2.rectangle(canvas, (x2, y1), (x2 + 30, y2), (0, 0, 255), -1)
-            grip_label = "🦾 [집게 제어] 집게 접음/닫힘 (Enter)"
+            grip_label = "🦾 [집게 제어] 쓰레기 포획 완료 (GRIP!)"
             g_bg_color = (0, 0, 200)
-        elif "OPEN" in gripper_status or "펼치기" in gripper_status or "열기" in gripper_status:
+        elif "OPEN" in gripper_status or "열기" in gripper_status:
             cv2.rectangle(canvas, (x1 - 45, y1), (x1 - 25, y2), (0, 255, 0), 4)
             cv2.rectangle(canvas, (x2 + 25, y1), (x2 + 45, y2), (0, 255, 0), 4)
-            grip_label = "🦾 [집게 제어] 집게 펼침/열림 (Spacebar)"
+            grip_label = "🦾 [집게 제어] 집게 열림 (OPEN)"
             g_bg_color = (0, 180, 0)
         elif "저장" in gripper_status or "지정" in gripper_status or "이동" in gripper_status:
             grip_label = f"🗺️ [지정 슬롯 자율주행] {gripper_status}"
@@ -265,19 +270,19 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
             if clean_category == "이물질/경고":
                 tag_text = "[경고] 오배출/이물질 감지!"
             elif clean_category == "종이":
-                tag_text = "[확정] 종이 -> [1번 종이 수거함] 자율주행!"
+                tag_text = "[확정] 종이 -> [Enter 누르면 집게접기 & 1번 이동!]"
             elif clean_category == "종이팩":
-                tag_text = "[확정] 종이팩 -> [2번 종이팩 수거함] 자율주행!"
+                tag_text = "[확정] 종이팩 -> [Enter 누르면 집게접기 & 2번 이동!]"
             elif clean_category == "플라스틱/페트병":
-                tag_text = "[확정] 페트병/플라스틱 -> [3번 패트병 수거함] 자율주행!"
+                tag_text = "[확정] 페트병/플라스틱 -> [Enter 누르면 집게접기 & 3번 이동!]"
             elif clean_category == "캔":
-                tag_text = "[확정] 캔 -> [4번 캔 수거함] 자율주행!"
+                tag_text = "[확정] 캔 -> [Enter 누르면 집게접기 & 4번 이동!]"
             else:
-                tag_text = f"[정상] {clean_category} -> 집게 수거함 이동!"
+                tag_text = f"[정상] {clean_category} -> Enter 누르면 이동!"
         else:
             tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}]"
     else:
-        tag_text = "쓰레기 감지 대기 중... (Enter:집게접기, Space:집게펼치기)"
+        tag_text = "쓰레기 감지 대기 중... (감지 시 Enter를 눌러 집게 접기)"
 
     text_draw_list.append((tag_text, (x1 + 10, y1 - 32), 18, color))
 
@@ -355,12 +360,12 @@ def record_single_slot(hamster, slot_choice: str):
                     steps.append({"left": cur_left, "right": cur_right, "duration": dur})
                 break
 
-            # 💡 [핵심 유저 요청] Enter = 집게 접기/닫기
+            # 💡 Enter = 집게 접기/닫기
             if keyboard.is_pressed("enter"):
                 control_physical_gripper(hamster, "close")
                 print(f"{CLEAR_LINE}  🦾 [집게 제어] Enter 입력 ➔ 집게 접기/닫기 (CLOSE)", end="", flush=True)
                 time.sleep(0.15)
-            # 💡 [핵심 유저 요청] Spacebar = 집게 펼치기/열기
+            # 💡 Spacebar = 집게 펼치기/열기
             elif keyboard.is_pressed("space"):
                 control_physical_gripper(hamster, "open")
                 print(f"{CLEAR_LINE}  🦾 [집게 제어] Spacebar 입력 ➔ 집게 펼치기/열기 (OPEN)", end="", flush=True)
@@ -462,7 +467,7 @@ def initial_arrow_teach_session(hamster):
 
 
 def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: float, stats: dict):
-    """4종 지정 슬롯 및 대칭 역주행 100% 정밀 복귀 운반 시퀀스"""
+    """4종 지정 슬롯 및 대칭 역주행 100% 정밀 복귀 운반 시퀀스 (Enter 입력 시 집게 접기 & 이동)"""
     waypoint_manager.log_event("SORTING_START", f"분리배출 확정 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
 
     slot_map = {
@@ -483,7 +488,47 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
             if cam.check_key() == "esc":
                 break
 
-    # 1. 실물 집게 열기 & 0.3초 접근 전진
+    # 1. 💡 [핵심 유저 요청] 쓰레기 인식 후 집게로 잡을 수 있는지 사용자에게 묻기
+    print("\n" + "=" * 65)
+    print(f"  ❓ [쓰레기 감지 완료] '{mapped_category}' (신뢰도: {conf:.0%})")
+    print("  -------------------------------------------------------------")
+    print("  햄스터봇이 이 쓰레기를 집게로 잡을 수 있는 위치에 있나요?")
+    print("  👉 잡을 수 있다면 [Enter (엔터)] 키를 누르세요! (집게 접기 & 수거 이동)")
+    print("  👉 넘어가려면 [Spacebar (스페이스바)] 키 또는 [ESC]를 누르세요.")
+    print("=" * 65 + "\n")
+
+    hamster.beep()
+    flush_console_input()
+    while keyboard.is_pressed("enter"):
+        time.sleep(0.05)
+    time.sleep(0.2)
+
+    confirmed = False
+    prompt_start = time.time()
+
+    # 화면 및 콘솔에서 Enter(잡기/접기) 또는 Space/ESC(스킵) 선택 대기 (최대 10초)
+    while time.time() - prompt_start < 10.0:
+        img = cam.read()
+        if img is not None:
+            prompt_msg = f"❓ [{mapped_category}] 잡을 수 있다면 Enter를 누르세요! (집게접기)"
+            img = draw_hud_and_bbox(img, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats, prompt_msg)
+            cam.show(img)
+
+        c_key = cam.check_key()
+        if keyboard.is_pressed("enter") or c_key == "enter":
+            confirmed = True
+            break
+        elif keyboard.is_pressed("space") or keyboard.is_pressed("esc") or c_key in ["space", "esc"]:
+            confirmed = False
+            break
+
+    if not confirmed:
+        print(f"  [알림] '{mapped_category}' 잡기 동작을 스킵했습니다.\n")
+        status_hud.update_status(motion="대기 중 (Standby)")
+        update_screen("스킵됨! 다음 쓰레기 감지 대기 중...", 0.5)
+        return
+
+    # 2. 실물 집게 열기 & 0.3초 접근 전진
     control_physical_gripper(hamster, "open")
     status_hud.update_status(motion=f"[{slot_id}번 {mapped_category}] 접근 전진 중")
     approach_dur = 0.3
@@ -491,12 +536,12 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
     update_screen("집게 열기 (OPEN) -> 접근 전진", approach_dur)
     hamster.stop()
 
-    # 2. 실물 집게 닫기 (close_gripper)
+    # 3. 실물 집게 닫기 (close_gripper - 엔터 입력 확인 후 발동!)
     control_physical_gripper(hamster, "close")
     status_hud.update_status(motion="쓰레기 포획 완료 (GRIP!)")
-    update_screen("쓰레기 포획 완료! (GRIP!)", 0.5)
+    update_screen("Enter 확인 완료! 집게 접기 & 쓰레기 포획 (GRIP!)", 0.6)
 
-    # 3. 4종 지정 번호 슬롯 위치 검색/호출 & 자율주행
+    # 4. 4종 지정 번호 슬롯 위치 검색/호출 & 자율주행
     named_route = waypoint_manager.get_waypoint(mapped_category)
 
     if named_route:
@@ -519,12 +564,12 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
 
     hamster.stop()
 
-    # 4. 실물 집게 해제 (release_gripper)
+    # 5. 실물 집게 해제 (release_gripper)
     control_physical_gripper(hamster, "release")
     status_hud.update_status(motion=f"[{mapped_category}] 수거함 투입 해제 (RELEASE)")
     update_screen("수거함 투입 완료! 집게 해제 (RELEASE)", 0.6)
 
-    # 5. 원래 자리 복귀 (💡 100% 대칭 역주행 궤적 + 포획 접근 반전)
+    # 6. 원래 자리 복귀 (💡 100% 대칭 역주행 궤적 + 포획 접근 반전)
     if named_route:
         status_hud.update_status(motion="↩️ 시작 위치로 대칭 정밀 역주행 복귀 중")
         reverse_route = waypoint_manager.get_reverse_return_trajectory(named_route)
@@ -563,7 +608,7 @@ def open_camera():
 
 
 def main():
-    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.1 키보드 집게제어)")
+    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4종 위치 지정 후 웹캠 시작 (v6.2 집게접기 엔터 확인)")
 
     print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
     routes_summary = []
@@ -604,7 +649,7 @@ def main():
     print("  - [2] 종이팩 ➔ 2번 지정 수거함 이동")
     print("  - [3] 패트병(플라스틱) ➔ 3번 지정 수거함 이동")
     print("  - [4] 캔 ➔ 4번 지정 수거함 이동")
-    print("  - 🦾 수동 집게 키: Enter(접기/닫기), Spacebar(펼치기/열기)")
+    print("  - ❓ 쓰레기 인식 시: Enter를 눌러 집게 접기 & 수거 이동 확정!")
     print("  - ↩️ 정밀 물리 대칭 엔진: 배출 후 1:1 대칭 역주행으로 시작 위치 오차 0.00cm 완벽 복귀!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
@@ -614,14 +659,6 @@ def main():
 
     try:
         while True:
-            # 💡 [핵심 유저 요청] 실시간 키보드 집게 수동 조종
-            if keyboard.is_pressed("enter"):
-                control_physical_gripper(hamster, "close")
-                time.sleep(0.12)
-            elif keyboard.is_pressed("space"):
-                control_physical_gripper(hamster, "open")
-                time.sleep(0.12)
-
             image = cam.read()
             if image is None:
                 time.sleep(0.5)
@@ -658,6 +695,7 @@ def main():
                     led_spec = LED_MAP.get(mapped_category, ("off", "off"))
                     set_robot_led(hamster, led_spec)
 
+                    # 💡 [유저 요청] 엔터 확인 후 집게 접기 및 이동 시퀀스 실행
                     operate_gripper_and_transport(hamster, cam, mapped_category, conf, stats)
 
                     set_robot_led(hamster, ("off", "off"))
