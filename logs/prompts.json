@@ -1,35 +1,5 @@
 [
   {
-    "timestamp": "2026-08-20 07:23:18",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:23:51",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 복귀 완료: [2번 종이팩]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:23:54",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_072354_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:23:54",
-    "event_type": "SORTING_START",
-    "message": "분리배출 확정 시퀀스 시작: '종이' (신뢰도: 0.96)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 07:23:56",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (16단계)",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-20 07:24:31",
     "event_type": "SORTING_COMPLETE",
     "message": "분리배출 및 복귀 완료: [1번 종이]",
@@ -617,6 +587,36 @@
   },
   {
     "timestamp": "2026-08-20 21:14:37",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:25:01",
+    "event_type": "SYSTEM_START",
+    "message": "AI 쓰레기 4프레임 연속 분석 ➔ 집게열고 4초 대기 ➔ 집게닫고 주행 (v7.2)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:25:30",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_212530_종이팩.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:25:30",
+    "event_type": "SORTING_START",
+    "message": "4프레임분석 4초대기 수거 시퀀스 시작: '종이팩' (신뢰도: 0.84)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:25:38",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-20 21:25:56",
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
     "extra": {}

@@ -1,9 +1,9 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v7.2 재활용품 4프레임 연속 분석 & 4초 집게열림 대기 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v7.3 재활용품 6프레임 연속 분석 & 4초 집게열림 대기 에디션)
 ====================================================================================================
 - [유저 요구사항 100% 완벽 반영]
-  1. 재활용품 AI 감지 분석 시간을 연속 4프레임(`REQUIRED_FRAMES = 4`)으로 변경 적용
-  2. 카메라에서 연속 4프레임 동안 신뢰도 80% 이상으로 감지되면 비로소 분석 확정
+  1. 재활용품 AI 감지 분석 시간을 연속 6프레임(`REQUIRED_FRAMES = 6`)으로 변경 적용
+  2. 카메라에서 연속 6프레임 동안 신뢰도 80% 이상으로 감지되면 비로소 분석 확정
   3. 감지 확정 시 바로 수거함 주행을 시작하지 않고 집게를 열고(OPEN) 4초간 제자리 대기
   4. 4초 대기 후 집게를 꽉 닫아(CLOSE) 포획 후 지정된 수거함 슬롯(1~4번)으로 주행 시작
   5. 수거함 도착 시 집게를 열어(OPEN) 투입 후 0.00cm 정밀 대칭 복귀 (집게 열린 상태 대기)
@@ -53,7 +53,7 @@ TODAY_CAPTURES_DIR.mkdir(parents=True, exist_ok=True)
 STATS_PATH   = PROJECT_ROOT / "stats.json"
 
 CONFIDENCE_THRESHOLD       = 0.8   # 이 값 미만이면 폐기/대기 (없음 처리)
-REQUIRED_FRAMES            = 4     # 재활용품 4프레임 연속 분석 확정 조건
+REQUIRED_FRAMES            = 6     # 재활용품 6프레임 연속 분석 확정 조건
 COUNTDOWN_SEC              = 2     # 시작 전 카운트다운 초
 WAIT_PLACEMENT_SEC         = 4.0   # 쓰레기 4초 집게열림 대기 시간
 
@@ -101,12 +101,12 @@ COLOR_BGR_MAP = {
 
 # 올바른 분리배출 안내문
 RECYCLING_TIPS = {
-    "플라스틱/페트병": "💡 [3번 패트병 슬롯] 4프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
-    "캔": "💡 [4번 캔 슬롯] 4프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
-    "종이": "💡 [1번 종이 슬롯] 4프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
-    "종이팩": "💡 [2번 종이팩 슬롯] 4프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
+    "플라스틱/페트병": "💡 [3번 패트병 슬롯] 6프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
+    "캔": "💡 [4번 캔 슬롯] 6프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
+    "종이": "💡 [1번 종이 슬롯] 6프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
+    "종이팩": "💡 [2번 종이팩 슬롯] 6프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
     "이물질/경고": "🚨 오배출 경고! 이물질을 먼저 세척하고 라벨을 떼어 버려주세요!",
-    "없음": "💡 쓰레기를 카메라에 비추면 4프레임 정밀 분석 후 집게를 열고 4초간 기다립니다.",
+    "없음": "💡 쓰레기를 카메라에 비추면 6프레임 정밀 분석 후 집게를 열고 4초간 기다립니다.",
 }
 
 
@@ -262,11 +262,11 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     # 3. 상단 중앙 카테고리 태그 바
     if clean_category != "없음":
         if category.startswith("★ 확정:"):
-            tag_text = f"★ [4프레임 분석 완료] {clean_category} (집게 열고 4초 대기 중!)"
+            tag_text = f"★ [6프레임 분석 완료] {clean_category} (집게 열고 4초 대기 중!)"
         else:
             tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}프레임 분석]"
     else:
-        tag_text = "쓰레기 감지 대기 중... (4프레임 연속 분석 대기)"
+        tag_text = "쓰레기 감지 대기 중... (6프레임 연속 분석 대기)"
 
     text_draw_list.append((tag_text, (x1 + 10, y1 - 32), 18, color))
 
@@ -474,9 +474,9 @@ def initial_arrow_teach_session(hamster):
 def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: float, stats: dict):
     """
     💡 [유저 요구사항 100% 완벽 반영]
-    1. 연속 4프레임 분석 확정 ➔ 2. 집게 열고 4초간 제자리 대기 ➔ 3. 4초 후 집게 닫기 ➔ 4. 비로소 수거함 주행 시작 ➔ 5. 집게 열기 ➔ 6. 0.00cm 대칭 복귀
+    1. 연속 6프레임 분석 확정 ➔ 2. 집게 열고 4초간 제자리 대기 ➔ 3. 4초 후 집게 닫기 ➔ 4. 비로소 수거함 주행 시작 ➔ 5. 집게 열기 ➔ 6. 0.00cm 대칭 복귀
     """
-    waypoint_manager.log_event("SORTING_START", f"4프레임분석 4초대기 수거 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
+    waypoint_manager.log_event("SORTING_START", f"6프레임분석 4초대기 수거 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
 
     slot_map = {
         "종이": "1",
@@ -496,11 +496,11 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
             if cam.check_key() == "esc":
                 break
 
-    # 1. 💡 4프레임 분석 완료 시 바로 수거함 주행을 시작하지 않고, 제자리에 멈춰 삐! 소리와 함께 집게 열기 (OPEN)!
-    print(f"\n  🤖 ['{mapped_category}' 4프레임 정밀 분석 완료!] 바로 수거함 주행 시작 X ➔ 집게를 열고 4초간 대기합니다...")
+    # 1. 💡 6프레임 분석 완료 시 바로 수거함 주행을 시작하지 않고, 제자리에 멈춰 삐! 소리와 함께 집게 열기 (OPEN)!
+    print(f"\n  🤖 ['{mapped_category}' 6프레임 정밀 분석 완료!] 바로 수거함 주행 시작 X ➔ 집게를 열고 4초간 대기합니다...")
     hamster.beep()
     control_physical_gripper(hamster, "open")
-    status_hud.update_status(motion=f"[{mapped_category}] 4프레임 확정! 집게 열기 (OPEN)")
+    status_hud.update_status(motion=f"[{mapped_category}] 6프레임 확정! 집게 열기 (OPEN)")
 
     # 2. 💡 제자리에 완전 정지하여 집게를 열고 4초 동안 사람이 쓰레기를 놓을 시간 부여 (4초 카운트다운)
     wait_start = time.time()
@@ -580,7 +580,7 @@ def open_camera():
 
 
 def main():
-    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 4프레임 연속 분석 ➔ 집게열고 4초 대기 ➔ 집게닫고 주행 (v7.2)")
+    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 6프레임 연속 분석 ➔ 집게열고 4초 대기 ➔ 집게닫고 주행 (v7.3)")
 
     print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
     routes_summary = []
@@ -620,13 +620,13 @@ def main():
     cam.count_down(COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [AI 쓰레기 4프레임 연속 분석 ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 수거함 주행 ➔ 복귀]")
+    print("  [AI 쓰레기 6프레임 연속 분석 ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 수거함 주행 ➔ 복귀]")
     print("  - 🦾 초기 및 대기 상태: 실물 집게 열림(OPEN) 수거 대기 유지")
     print("  - [1] 종이 ➔ 1번 수거함 이동")
     print("  - [2] 종이팩 ➔ 2번 수거함 이동")
     print("  - [3] 패트병(플라스틱) ➔ 3번 수거함 이동")
     print("  - [4] 캔 ➔ 4번 수거함 이동")
-    print("  - 🤖 감지 시: 연속 4프레임 정밀 분석 ➔ 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 닫기(CLOSE) ➔ 비로소 주행!")
+    print("  - 🤖 감지 시: 연속 6프레임 정밀 분석 ➔ 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 닫기(CLOSE) ➔ 비로소 주행!")
     print("  - ↩️ 정밀 물리 대칭 엔진: 배출 후 1:1 대칭 역주행으로 시작 위치 오차 0.00cm 완벽 복귀!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
@@ -659,7 +659,7 @@ def main():
 
                 image = draw_hud_and_bbox(image, mapped_category, conf, consecutive_count, REQUIRED_FRAMES, stats)
 
-                # 💡 쓰레기를 연속 4프레임 동안 정밀 분석하여 신뢰 확보 시 집게열기 & 4초대기 후 주행!
+                # 💡 쓰레기를 연속 6프레임 동안 정밀 분석하여 신뢰 확보 시 집게열기 & 4초대기 후 주행!
                 if consecutive_count >= REQUIRED_FRAMES:
                     stats[mapped_category] = stats.get(mapped_category, 0) + 1
                     save_stats(stats)
@@ -673,7 +673,7 @@ def main():
                     led_spec = LED_MAP.get(mapped_category, ("off", "off"))
                     set_robot_led(hamster, led_spec)
 
-                    # 💡 4프레임 분석 ➔ 바로주행X ➔ 집게열기 ➔ 4초간 제자리 대기 ➔ 집게닫기 ➔ 비로소 수거함 주행 ➔ 집게열기 ➔ 복귀!
+                    # 💡 6프레임 분석 ➔ 바로주행X ➔ 집게열기 ➔ 4초간 제자리 대기 ➔ 집게닫기 ➔ 비로소 수거함 주행 ➔ 집게열기 ➔ 복귀!
                     operate_gripper_and_transport(hamster, cam, mapped_category, conf, stats)
 
                     set_robot_led(hamster, ("off", "off"))
