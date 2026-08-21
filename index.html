@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>햄스터 로봇 AI 재활용 분류기</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+    #webcam-container { margin: 20px auto; width: 300px; height: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+    #label-container { margin-top: 15px; font-size: 1.2rem; font-weight: bold; }
+    button { padding: 10px 20px; font-size: 1rem; border: none; border-radius: 8px; background: #007bff; color: white; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h2>🤖 햄스터 로봇 AI 재활용 분류</h2>
+  <button type="button" onclick="init()">카메라 및 AI 시작</button>
+  <div id="webcam-container"></div>
+  <div id="label-container"></div>
+
+  <script>
+    // models 폴더에 저장된 티처블 머신 모델 경로
+    const URL = "./models/";
+    let model, webcam, labelContainer, maxPredictions;
+
+    async function init() {
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+
+      const flip = true;
+      webcam = new tmImage.Webcam(300, 300, flip);
+      await webcam.setup();
+      await webcam.play();
+      window.requestAnimationFrame(loop);
+
+      document.getElementById("webcam-container").appendChild(webcam.canvas);
+      labelContainer = document.getElementById("label-container");
+    }
+
+    async function loop() {
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+      let highestProb = 0;
+      let bestClass = "";
+
+      for (let i = 0; i < maxPredictions; i++) {
+        if (prediction[i].probability > highestProb) {
+          highestProb = prediction[i].probability;
+          bestClass = prediction[i].className;
+        }
+      }
+
+      labelContainer.innerHTML = `인식 결과: <span style="color:#007bff;">${bestClass}</span> (${(highestProb * 100).toFixed(1)}%)`;
+    }
+  </script>
+</body>
+</html>
