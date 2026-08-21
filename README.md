@@ -1,3 +1,10 @@
+## 📱 웹에서 바로 실행하기 (Web App)
+
+스마트폰 카메라로 아래 QR 코드를 스캔하거나 [웹 앱 바로가기](https://logic4rest.github.io/hamster/) 링크를 클릭하세요.
+
+![QR Code](./web_hamster_qr.png)
+
+
 엑스배너: https://canva.link/7ysacp79v9o0zj2
 ppt: https://canva.link/xlx3rn9imihmi3i
 
