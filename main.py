@@ -1,12 +1,12 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v7.3 재활용품 6프레임 연속 분석 & 4초 집게열림 대기 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v8.0 스마트폰 QR 스캔 모바일 리모컨 웹서버 탑재 에디션)
 ====================================================================================================
 - [유저 요구사항 100% 완벽 반영]
-  1. 재활용품 AI 감지 분석 시간을 연속 6프레임(`REQUIRED_FRAMES = 6`)으로 변경 적용
-  2. 카메라에서 연속 6프레임 동안 신뢰도 80% 이상으로 감지되면 비로소 분석 확정
-  3. 감지 확정 시 바로 수거함 주행을 시작하지 않고 집게를 열고(OPEN) 4초간 제자리 대기
-  4. 4초 대기 후 집게를 꽉 닫아(CLOSE) 포획 후 지정된 수거함 슬롯(1~4번)으로 주행 시작
-  5. 수거함 도착 시 집게를 열어(OPEN) 투입 후 0.00cm 정밀 대칭 복귀 (집게 열린 상태 대기)
+  1. 화면 우측 하단에 스마트폰 카메라인식 QR 코드를 실시간 오버레이 출력
+  2. 스마트폰 카메라로 QR 코드를 스캔하면 전용 모바일 웹 리모컨이 바로 열림!
+  3. 스마트폰 터치 버튼으로 실시간 주행, 집게 제어, 원터치 쓰레기 4종 자율 수거 명령 가능
+  4. 스마트폰 화면에서 웹캠 실시간 비디오 스트리밍 감상 가능
+  5. 6프레임 연속 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 비로소 수거함 주행 ➔ 0.00cm 대칭 복귀
 
 실행 방법:
     python main.py
@@ -33,13 +33,20 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from roboid import *
 
-# 위치 북마크, 로그 관리자 및 미니 상태창 모듈 로드
+# 위치 북마크, 로그 관리자, 상태창 및 QR 웹서버 모듈 로드
 PROJECT_ROOT = Path(__file__).parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hamster.waypoint_manager import waypoint_manager, NUMBERED_SLOTS, ROUTES_DIR, CAPTURES_DIR, LOGS_DIR
 from hamster.status_window import status_hud
+from hamster.qr_web_server import (
+    start_qr_web_server,
+    overlay_qr_code_on_frame,
+    update_web_frame,
+    app
+)
+import hamster.qr_web_server as qr_server
 
 CLEAR_LINE = "\033[2K\r"
 
@@ -59,6 +66,9 @@ REQUIRED_FRAMES            = 6     # 재활용품 6프레임 연속 분석 확�
 COUNTDOWN_SEC              = 2     # 시작 전 카운트다운 초
 WAIT_PLACEMENT_SEC         = 4.0   # 쓰레기 4초 집게열림 대기 시간
 IMG_SIZE                   = 224   # 티처블 머신 기본 입력 크기
+
+# 글로벌 스마트폰 웹 명령 큐
+web_sort_trigger = None
 
 # ── 카테고리 및 LED 매핑 ──────────────────────────────────────────────────────
 CATEGORY_MAP = {
@@ -109,7 +119,7 @@ RECYCLING_TIPS = {
     "종이": "💡 [1번 종이 슬롯] 6프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
     "종이팩": "💡 [2번 종이팩 슬롯] 6프레임 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 이동",
     "이물질/경고": "🚨 오배출 경고! 이물질을 먼저 세척하고 라벨을 떼어 버려주세요!",
-    "없음": "💡 쓰레기를 카메라에 비추면 6프레임 정밀 분석 후 집게를 열고 4초간 기다립니다.",
+    "없음": "📱 우측 하단 QR 코드를 스마트폰으로 스캔하여 원격 조종할 수 있습니다.",
 }
 
 
@@ -535,6 +545,9 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
             if ret and frame is not None:
                 frame = cv2.flip(frame, 1)
                 frame = draw_hud_and_bbox(frame, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats, status_msg)
+                update_web_frame(frame)
+                if qr_server._qr_url:
+                    frame = overlay_qr_code_on_frame(frame, qr_server._qr_url)
                 cv2.imshow("Waste Sorting Hamster", frame)
             if cv2.waitKey(10) & 0xFF == 27:
                 break
@@ -606,7 +619,7 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
     waypoint_manager.log_event("SORTING_COMPLETE", f"분리배출 및 시작위치 복귀 완료: [{slot_id}번 {mapped_category}]")
 
 
-def countdown(cap: cv2.VideoCapture, seconds: int):
+def countdown(cap: cv2.VideoCapture, seconds: int, web_url: str = ""):
     for i in range(seconds, 0, -1):
         deadline = time.time() + 1.0
         while time.time() < deadline:
@@ -619,6 +632,9 @@ def countdown(cap: cv2.VideoCapture, seconds: int):
                 (frame.shape[1] // 2 - 40, frame.shape[0] // 2 + 40),
                 cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 0), 6, cv2.LINE_AA,
             )
+            update_web_frame(frame)
+            if web_url:
+                frame = overlay_qr_code_on_frame(frame, web_url)
             cv2.imshow("Waste Sorting Hamster", frame)
             if cv2.waitKey(30) & 0xFF == 27:
                 return
@@ -645,7 +661,12 @@ def open_camera():
 
 
 def main():
-    waypoint_manager.log_event("SYSTEM_START", "AI 쓰레기 6프레임 연속 분석 ➔ 집게열고 4초 대기 ➔ 집게닫고 주행 (v7.3)")
+    global web_sort_trigger
+
+    waypoint_manager.log_event("SYSTEM_START", "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.0)")
+
+    # 📱 스마트폰 QR 스캔 모바일 리모컨 웹서버 가동!
+    web_url = start_qr_web_server(port=5000)
 
     print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
     routes_summary = []
@@ -666,6 +687,28 @@ def main():
     hamster = Hamster()
     set_robot_led(hamster, ("off", "off"))
 
+    # 웹 스마트폰 콜백 바인딩
+    def handle_web_command(cmd_type: str, value: str):
+        global web_sort_trigger
+        if cmd_type == 'drive':
+            speed = 35
+            if value == 'up':
+                hamster.wheels(speed, speed)
+            elif value == 'down':
+                hamster.wheels(-speed, -speed)
+            elif value == 'left':
+                hamster.wheels(-speed, speed)
+            elif value == 'right':
+                hamster.wheels(speed, -speed)
+            else:
+                hamster.stop()
+        elif cmd_type == 'gripper':
+            control_physical_gripper(hamster, value)
+        elif cmd_type == 'sort':
+            web_sort_trigger = value
+
+    qr_server.robot_controller_callback = handle_web_command
+
     control_physical_gripper(hamster, "open")
 
     # ★ [핵심] 시작 즉시 웹캠을 켜지 않고 위치 지정 메뉴를 먼저 실행! (0번 누르면 웹캠 시작)
@@ -683,16 +726,17 @@ def main():
 
     print(f"[INFO] 카메라를 시작합니다 ({COUNTDOWN_SEC}초 카운트다운)...")
     cv2.namedWindow("Waste Sorting Hamster", cv2.WINDOW_AUTOSIZE)
-    countdown(cap, COUNTDOWN_SEC)
+    countdown(cap, COUNTDOWN_SEC, web_url)
 
     print("\n" + "=" * 65)
-    print("  [AI 쓰레기 6프레임 연속 분석 ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 수거함 주행 ➔ 복귀]")
+    print("  [📱 스마트폰 QR 스캔 모바일 리모컨 지원 AI 스마트 수거 시스템]")
+    print(f"  - 📱 스마트폰 카메라 접속 URL: {web_url}")
     print("  - 🦾 초기 및 대기 상태: 실물 집게 열림(OPEN) 수거 대기 유지")
     print("  - [1] 종이 ➔ 1번 수거함 이동")
     print("  - [2] 종이팩 ➔ 2번 수거함 이동")
     print("  - [3] 패트병(플라스틱) ➔ 3번 수거함 이동")
     print("  - [4] 캔 ➔ 4번 수거함 이동")
-    print("  - 🤖 감지 시: 연속 6프레임 정밀 분석 ➔ 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 닫기(CLOSE) ➔ 비로소 주행!")
+    print("  - 🤖 AI/웹 감지 시: 6프레임 분석 ➔ 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 닫기 ➔ 주행!")
     print("  - ↩️ 정밀 물리 대칭 엔진: 배출 후 1:1 대칭 역주행으로 시작 위치 오차 0.00cm 완벽 복귀!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
@@ -702,6 +746,18 @@ def main():
 
     try:
         while True:
+            # 📱 스마트폰 웹 원터치 분리배출 요청 처리
+            if web_sort_trigger is not None:
+                cat_to_sort = web_sort_trigger
+                web_sort_trigger = None
+                print(f"\n  📱 [스마트폰 웹 요청] '{cat_to_sort}' 원터치 분리배출 명령 수신!")
+                stats[cat_to_sort] = stats.get(cat_to_sort, 0) + 1
+                save_stats(stats)
+                led_spec = LED_MAP.get(cat_to_sort, ("off", "off"))
+                set_robot_led(hamster, led_spec)
+                operate_gripper_and_transport(hamster, cap, cat_to_sort, 1.0, stats)
+                set_robot_led(hamster, ("off", "off"))
+
             ret, frame = cap.read()
             if not ret or frame is None:
                 time.sleep(0.5)
@@ -756,8 +812,13 @@ def main():
                 set_robot_led(hamster, ("off", "off"))
                 frame = draw_hud_and_bbox(frame, "없음", confidence, 0, REQUIRED_FRAMES, stats)
 
+            # 웹 스트리밍으로 최신 원본 오버레이 프레임 전달
+            update_web_frame(frame)
+
+            # 모니터 화면에는 우측 하단 QR 코드를 합성하여 출력
             if frame is not None:
-                cv2.imshow("Waste Sorting Hamster", frame)
+                display_frame = overlay_qr_code_on_frame(frame, web_url)
+                cv2.imshow("Waste Sorting Hamster", display_frame)
 
             if cv2.waitKey(1) & 0xFF == 27:
                 break
