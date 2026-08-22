@@ -8,8 +8,13 @@ JayM - 장난감 숲 (Forest of Toys) 연주 및 LED 포레스트 애니메이�
 """
 
 import sys
+import io
 import random
 from roboid import Hamster, wait
+
+# Windows 콘솔에서 유니코드(이모지) 출력 시 CP949 인코딩 오류가 발생하는 것을 방지
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 def play_toy_forest():
     print("햄스터 로봇에 연결하는 중...")

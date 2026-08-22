@@ -1,11 +1,5 @@
 [
   {
-    "timestamp": "2026-08-20 21:25:38",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-20 21:25:56",
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
@@ -597,6 +591,12 @@
     "timestamp": "2026-08-20 22:15:48",
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-22 15:38:00",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.0)",
     "extra": {}
   }
 ]

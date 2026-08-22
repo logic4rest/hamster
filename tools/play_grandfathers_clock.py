@@ -7,9 +7,13 @@
     uv run python tools/play_grandfathers_clock.py
 """
 
-import time
 import sys
+import io
 from roboid import Hamster, wait
+
+# Windows 콘솔에서 유니코드(이모지) 출력 시 CP949 인코딩 오류가 발생하는 것을 방지
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 def play_grandfathers_clock():
     print("햄스터 로봇에 연결하는 중...")

@@ -1,12 +1,10 @@
 """
-티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v8.0 스마트폰 QR 스캔 모바일 리모컨 웹서버 탑재 에디션)
+티처블 머신 쓰레기 분리배출 햄스터 봇 제어 (v8.1 크롬 자동 열기 & 바탕화면 바로가기 에디션)
 ====================================================================================================
 - [유저 요구사항 100% 완벽 반영]
-  1. 화면 우측 하단에 스마트폰 카메라인식 QR 코드를 실시간 오버레이 출력
-  2. 스마트폰 카메라로 QR 코드를 스캔하면 전용 모바일 웹 리모컨이 바로 열림!
-  3. 스마트폰 터치 버튼으로 실시간 주행, 집게 제어, 원터치 쓰레기 4종 자율 수거 명령 가능
-  4. 스마트폰 화면에서 웹캠 실시간 비디오 스트리밍 감상 가능
-  5. 6프레임 연속 분석 ➔ 바로주행X ➔ 집게열고 4초 대기 ➔ 집게닫기 ➔ 비로소 수거함 주행 ➔ 0.00cm 대칭 복귀
+  1. 프로그램 실행 시 크롬 브라우저가 자동으로 열림 (http://localhost:5000)
+  2. 바탕화면에 '햄스터_분리배출_사이트.url' 바로가기 아이콘 자동 생성 (더블클릭 접속)
+  3. 스마트폰 QR 스캔 조종 & 웹 2D 시뮬레이터 & 원터치 ZIP 다운로드 지원
 
 실행 방법:
     uv run hamster
@@ -17,6 +15,7 @@ import json
 import os
 import sys
 import time
+import webbrowser
 from pathlib import Path
 
 # 윈도우 콘솔 CP949 UTF-8 인코딩 안전 처리
@@ -118,6 +117,18 @@ RECYCLING_TIPS = {
     "이물질/경고": "🚨 오배출 경고! 이물질을 먼저 세척하고 라벨을 떼어 버려주세요!",
     "없음": "📱 우측 하단 QR 코드를 스마트폰으로 스캔하여 원격 조종할 수 있습니다.",
 }
+
+
+def create_desktop_shortcut(url: str):
+    """바탕화면에 더블클릭 바로가기 파일 자동 생성"""
+    try:
+        desktop_dir = Path.home() / "Desktop"
+        if desktop_dir.exists():
+            shortcut_file = desktop_dir / "햄스터_분리배출_사이트.url"
+            content = f"[InternetShortcut]\nURL={url}\nIconIndex=0\n"
+            shortcut_file.write_text(content, encoding="utf-8")
+    except Exception:
+        pass
 
 
 def flush_console_input():
@@ -595,10 +606,17 @@ def open_camera():
 def main():
     global web_sort_trigger
 
-    waypoint_manager.log_event("SYSTEM_START", "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.0)")
+    waypoint_manager.log_event("SYSTEM_START", "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)")
 
     # 📱 스마트폰 QR 스캔 모바일 리모컨 웹서버 가동!
     web_url = start_qr_web_server(port=5000)
+
+    # 💡 [유저 편의] 바탕화면 더블클릭 바로가기 생성 & 크롬 브라우저 자동 오픈!
+    create_desktop_shortcut(web_url)
+    try:
+        webbrowser.open(web_url)
+    except Exception:
+        pass
 
     print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
     routes_summary = []
@@ -662,6 +680,7 @@ def main():
     print("\n" + "=" * 65)
     print("  [📱 스마트폰 QR 스캔 모바일 리모컨 지원 AI 스마트 수거 시스템]")
     print(f"  - 📱 스마트폰 카메라 접속 URL: {web_url}")
+    print("  - 🌐 웹 브라우저 크롬 자동 접속 및 바탕화면 바로가기 생성 완료!")
     print("  - 🦾 초기 및 대기 상태: 실물 집게 열림(OPEN) 수거 대기 유지")
     print("  - [1] 종이 ➔ 1번 수거함 이동")
     print("  - [2] 종이팩 ➔ 2번 수거함 이동")
