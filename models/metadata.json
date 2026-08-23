@@ -1,0 +1,19 @@
+{
+  "tfjsSpeechCommandsVersion": "0.4.0",
+  "modelName": "HamsterWasteSortingModel",
+  "timeStamp": "2026-08-23T17:48:00.000Z",
+  "userLabels": [
+    "종이",
+    "종이팩",
+    "플라스틱/페트병",
+    "캔",
+    "없음"
+  ],
+  "labels": [
+    "종이",
+    "종이팩",
+    "플라스틱/페트병",
+    "캔",
+    "없음"
+  ]
+}
