@@ -1,29 +1,5 @@
 [
   {
-    "timestamp": "2026-08-20 21:25:56",
-    "event_type": "SYSTEM_STOP",
-    "message": "프로그램 정상 종료",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 21:28:01",
-    "event_type": "SYSTEM_START",
-    "message": "AI 쓰레기 6프레임 연속 분석 ➔ 집게열고 4초 대기 ➔ 집게닫고 주행 (v7.3)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 21:28:27",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260820_212827_캔.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-20 21:28:27",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '캔' (신뢰도: 0.91)",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-20 21:28:35",
     "event_type": "AUTONOMOUS_NAV",
     "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (5단계)",
@@ -597,6 +573,30 @@
     "timestamp": "2026-08-22 15:38:00",
     "event_type": "SYSTEM_START",
     "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-22 16:10:24",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-22 16:10:54",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-22 16:15:07",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-22 16:16:39",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
     "extra": {}
   }
 ]

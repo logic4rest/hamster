@@ -1,5 +1,5 @@
 """
-스마트폰 QR 모바일 리모컨 & 2D/3D 시뮬레이터 & 프로젝트 ZIP 다운로더 웹서버 (v2.0)
+스마트폰 QR 모바일 리모컨 & 2D/3D 시뮬레이터 & 프로젝트 ZIP 다운로더 웹서버 (v2.2)
 ==================================================================================
 - 모드 전환: [🧪 웹 2D 시뮬레이션 모드] <---> [🤖 실제 햄스터봇 조종 모드]
 - 실시간 2D 캔버스 아레나 시뮬레이터 (스마트폰/웹 브라우저에서 바로 주행 검증)
@@ -11,10 +11,19 @@ import io
 import json
 import os
 import socket
+import sys
 import threading
 import time
+import webbrowser
 import zipfile
 from pathlib import Path
+
+# 윈도우 콘솔 CP949 UTF-8 인코딩 안전 처리
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 import cv2
 import numpy as np
@@ -29,7 +38,7 @@ frame_lock = threading.Lock()
 
 robot_controller_callback = None
 stats_provider_callback = None
-current_mode = "real"  # "real" 또는 "simulation"
+current_mode = "simulation"  # 기본 시뮬레이션 모드
 
 app = Flask(__name__)
 
@@ -81,8 +90,8 @@ HTML_DASHBOARD = """
     <header>
         <h1>🐹 햄스터 분리배출관제센터</h1>
         <div class="mode-toggle">
-            <button id="btn-mode-real" class="mode-btn active" onclick="switchMode('real')">🤖 실제 햄스터봇</button>
-            <button id="btn-mode-sim" class="mode-btn" onclick="switchMode('sim')">🧪 시뮬레이션 모드</button>
+            <button id="btn-mode-sim" class="mode-btn active" onclick="switchMode('sim')">🧪 시뮬레이션 모드</button>
+            <button id="btn-mode-real" class="mode-btn" onclick="switchMode('real')">🤖 실제 햄스터봇</button>
         </div>
     </header>
 
@@ -92,19 +101,19 @@ HTML_DASHBOARD = """
         </a>
     </div>
 
-    <!-- 1. 실제 햄스터봇 모드 화면 -->
-    <div id="panel-real" class="view-panel active">
-        <div class="stream-card">
-            <img src="/video_feed" alt="실시간 카메라 스트리밍">
-        </div>
-    </div>
-
-    <!-- 2. 시뮬레이션 모드 화면 -->
-    <div id="panel-sim" class="view-panel">
+    <!-- 1. 시뮬레이션 모드 화면 (기본 활성) -->
+    <div id="panel-sim" class="view-panel active">
         <div class="sim-card">
             <div class="section-title" style="color: #c084fc; margin-bottom: 6px;">🎮 2D 가상 햄스터 분리배출 아레나</div>
             <canvas id="simCanvas" width="400" height="280"></canvas>
-            <div id="simLog" class="status-pill" style="background: #581c87; margin-top: 8px;">대기 중: 수거 버튼을 눌러 시뮬레이션을 시작하세요.</div>
+            <div id="simLog" class="status-pill" style="background: #581c87; margin-top: 8px;">대기 중: 아래 수거 버튼을 눌러 시뮬레이션을 실행하세요.</div>
+        </div>
+    </div>
+
+    <!-- 2. 실제 햄스터봇 모드 화면 -->
+    <div id="panel-real" class="view-panel">
+        <div class="stream-card">
+            <img src="/video_feed" alt="실시간 카메라 스트리밍">
         </div>
     </div>
 
@@ -140,11 +149,11 @@ HTML_DASHBOARD = """
     </div>
 
     <footer>
-        AI 스마트 햄스터 분리배출관제센터 & 시뮬레이터 v2.0
+        AI 스마트 햄스터 분리배출관제센터 & 시뮬레이터 v2.2
     </footer>
 
     <script>
-        let currentMode = 'real';
+        let currentMode = 'sim';
         
         function switchMode(mode) {
             currentMode = mode;
@@ -402,7 +411,7 @@ def overlay_qr_code_on_frame(frame: np.ndarray, server_url: str) -> np.ndarray:
     
     cv2.rectangle(canvas, (x1 - 4, y1 - 22), (x2 + 4, y2 + 4), (255, 255, 255), -1)
     cv2.rectangle(canvas, (x1 - 4, y1 - 22), (x2 + 4, y2 + 4), (0, 120, 255), 2)
-    cv2.putText(canvas, "📱 QR Mobile", (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
+    cv2.putText(canvas, "QR Mobile", (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
     
     canvas[y1:y2, x1:x2] = qr_bgr
     return canvas
@@ -453,7 +462,7 @@ def download_project_zip():
 def api_set_mode():
     global current_mode
     data = request.json or {}
-    mode = data.get('mode', 'real')
+    mode = data.get('mode', 'simulation')
     current_mode = mode
     return jsonify({"status": "ok", "mode": current_mode})
 
@@ -486,12 +495,14 @@ def start_qr_web_server(port: int = 5000) -> str:
     ip = get_local_ip()
     url = f"http://{ip}:{port}"
     
-    print("\n" + "=" * 65)
-    print("  📱 [스마트폰 QR 관제센터 & 시뮬레이터 & ZIP 다운로드 웹서버 가동]")
-    print(f"  - 웹/스마트폰 접속 URL: {url}")
-    print("  - 프로젝트 ZIP 다운로드 URL: {url}/download")
-    print("  - QR 코드가 웹캠 카메라 화면 우측 하단에 실시간으로 표시됩니다!")
-    print("=" * 65 + "\n")
+    try:
+        print("\n" + "=" * 65)
+        print("[INFO] Smartphone QR Web Control & 2D Simulator Server Started")
+        print(f"  - Web URL: {url}")
+        print(f"  - Download URL: {url}/download")
+        print("=" * 65 + "\n")
+    except Exception:
+        pass
     
     def run():
         import logging
@@ -502,3 +513,12 @@ def start_qr_web_server(port: int = 5000) -> str:
     t = threading.Thread(target=run, daemon=True)
     t.start()
     return url
+
+if __name__ == "__main__":
+    url = start_qr_web_server(5000)
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
+    while True:
+        time.sleep(1)
