@@ -729,22 +729,17 @@ def main():
 
     control_physical_gripper(hamster, "open")
 
-    # ★ [핵심] 시작 즉시 웹캠을 켜지 않고 위치 지정 메뉴를 먼저 실행! (0번 누르면 웹캠 시작)
-    initial_arrow_teach_session(hamster)
-
-    # 0번을 입력했을 때 비로소 웹캠 카메라 연결
+    # 웹캠 카메라 즉시 연결 및 자동 시작
     cap = open_camera()
     if cap is None or not cap.isOpened():
-        print("[ERROR] 웹캠 카메라를 열 수 없습니다! 카메라 연결 상태를 확인해 주세요.")
-        set_robot_led(hamster, ("off", "off"))
-        hamster.stop()
-        return
-
-    control_physical_gripper(hamster, "open")
-
-    print(f"[INFO] 카메라를 시작합니다 ({COUNTDOWN_SEC}초 카운트다운)...")
-    cv2.namedWindow("Waste Sorting Hamster", cv2.WINDOW_AUTOSIZE)
-    countdown(cap, COUNTDOWN_SEC, web_url)
+        print("[WARN] 실물 웹캠 카메라가 없거나 연결되지 않았습니다. (웹 시뮬레이터 모드로 계속 가동됩니다)")
+    else:
+        print(f"[INFO] 카메라를 시작합니다 ({COUNTDOWN_SEC}초 카운트다운)...")
+        try:
+            cv2.namedWindow("Waste Sorting Hamster", cv2.WINDOW_AUTOSIZE)
+            countdown(cap, COUNTDOWN_SEC, web_url)
+        except Exception:
+            pass
 
     print("\n" + "=" * 65)
     print("  [📱 스마트폰 QR 스캔 모바일 리모컨 지원 AI 스마트 수거 시스템]")
@@ -777,9 +772,16 @@ def main():
                 operate_gripper_and_transport(hamster, cap, cat_to_sort, 1.0, stats)
                 set_robot_led(hamster, ("off", "off"))
 
+            if cap is None:
+                frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                frame = draw_hud_and_bbox(frame, "없음", 0.0, 0, REQUIRED_FRAMES, stats, "실물 카메라 연결 대기 중 (2D 시뮬레이터 가동 가능)")
+                update_web_frame(frame)
+                time.sleep(0.1)
+                continue
+
             ret, frame = cap.read()
             if not ret or frame is None:
-                time.sleep(0.5)
+                time.sleep(0.1)
                 continue
 
             frame = cv2.flip(frame, 1)
