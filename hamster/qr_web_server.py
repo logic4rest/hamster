@@ -443,6 +443,15 @@ def api_gripper():
         robot_controller_callback('gripper', action)
     return jsonify({"status": "ok", "message": f"집게 제어: {action}"})
 
+@app.route('/api/status', methods=['GET'])
+def api_status():
+    connected = robot_controller_callback is not None
+    return jsonify({
+        "status": "ok",
+        "robot_connected": connected,
+        "message": "🤖 실물 햄스터 로봇과 파이썬 AI 엔진이 1:1 연결되었습니다!" if connected else "⚠️ 실물 햄스터 로봇을 연결하려면 바탕화면의 [햄스터_분리배출_실행.bat]을 실행하세요."
+    })
+
 @app.route('/api/sort', methods=['POST'])
 def api_sort():
     data = request.json or {}

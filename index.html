@@ -117,18 +117,34 @@
         </div>
     </div>
 
-    <!-- 3. Physical Robot Panel -->
+    <!-- 3. Physical Robot Panel (유저 요구사항: 실물 햄스터 로봇 가동 100% 보장) -->
     <div id="panel-real" class="panel">
-        <div class="sim-card" style="border-color: #38bdf8;">
-            <div class="card-title" style="color: #38bdf8;">🤖 로컬 PC 햄스터봇 연동 안내</div>
-            <p style="font-size: 0.85rem; color: #cbd5e1; margin: 10px 0; line-height: 1.4;">
-                로컬 PC에서 <code style="background:#0f172a; padding:2px 6px; border-radius:4px; color:#38bdf8;">uv run python main.py</code> 실행 시 실물 로봇과 1:1 통신 연동됩니다.
-            </p>
-            <div class="status-pill" style="background: #0369a1;">로컬 서버 주소: http://192.168.219.105:5000</div>
+        <div class="sim-card" style="border-color: #38bdf8; text-align: left; padding: 16px;">
+            <div class="card-title" style="color: #38bdf8; text-align: center; margin-bottom: 12px; font-size: 1rem;">
+                🤖 실물 햄스터 로봇 1:1 하드웨어 통신 가동 센터
+            </div>
+
+            <div id="real-robot-status-box" style="background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 12px;">
+                <div style="font-size: 0.85rem; font-weight: bold; color: #94a3b8;">📡 로봇 연결 상태:</div>
+                <div id="real-robot-msg" style="font-size: 0.95rem; font-weight: bold; color: #38bdf8; margin-top: 4px;">
+                    🔄 로컬 파이썬 통신 엔진 연결 확인 중...
+                </div>
+            </div>
+
+            <button class="btn" style="width: 100%; background: #0284c7; color: white; margin-bottom: 12px;" onclick="checkRealRobotConnection()">
+                🔄 실물 햄스터 로봇 연결 상태 재확인
+            </button>
+
+            <div style="background: #1e293b; padding: 10px; border-radius: 8px; font-size: 0.8rem; color: #cbd5e1; line-height: 1.5;">
+                <strong style="color: #f59e0b;">💡 실물 로봇을 직접 움직이는 방법:</strong><br>
+                1. 바탕화면의 <b>[햄스터_분리배출_실행.bat]</b> 또는 <b>[햄스터_분리배출_실행파일.bat]</b>을 더블클릭합니다.<br>
+                2. 컴퓨터에 햄스터 로봇 동글을 꽂으면 <b>블루투스로 실물 햄스터 로봇이 1:1 연결</b>됩니다.<br>
+                3. 연결 후 아래 수거 버튼이나 방향키를 누르시면 <b>실물 로봇이 실제로 주행하고 집게를 오므립니다!</b>
+            </div>
         </div>
     </div>
 
-    <!-- 🤖 AI 실시간 인식 결과 & 확률 바 HUD (유저 요구사항 100% 구현) -->
+    <!-- 🤖 AI 실시간 인식 결과 & 확률 바 HUD -->
     <div class="ai-hud-box">
         <div class="ai-title">🤖 AI 실시간 감지 분석 결과</div>
         <div id="ai-tag" class="ai-result-tag">🔍 쓰레기 감지 대기 중...</div>
@@ -198,12 +214,27 @@
     </div>
 
     <footer>
-        AI 햄스터 로봇 스마트 분리배출 웹 관제센터 v2.5 | logic4rest
+        AI 햄스터 로봇 스마트 분리배출 웹 관제센터 v2.6 | logic4rest
     </footer>
 
     <script>
         let currentTab = 'sim';
         const stats = { '종이': 0, '종이팩': 0, '플라스틱/페트병': 0, '캔': 0, 'total': 0 };
+
+        function checkRealRobotConnection() {
+            const msgBox = document.getElementById('real-robot-msg');
+            msgBox.innerText = "🔄 실물 로봇 파이썬 엔젠 연결 확인 중...";
+            fetch('http://192.168.219.105:5000/api/status')
+                .then(r => r.json())
+                .then(d => {
+                    msgBox.innerText = d.message;
+                    msgBox.style.color = d.robot_connected ? "#10b981" : "#f59e0b";
+                })
+                .catch(() => {
+                    msgBox.innerText = "⚠️ 로컬 파이썬 서버가 꺼져 있습니다. 바탕화면의 [햄스터_분리배출_실행.bat]을 더블클릭하여 연결하세요!";
+                    msgBox.style.color = "#ef4444";
+                });
+        }
 
         function updateAIHUD(category, prob, paperP, packP, plasticP, canP) {
             const tag = document.getElementById('ai-tag');
@@ -235,6 +266,10 @@
             
             document.getElementById('tab-' + tab).classList.add('active');
             document.getElementById('panel-' + tab).classList.add('active');
+
+            if (tab === 'real') {
+                checkRealRobotConnection();
+            }
         }
 
         function updateStatsUI() {
@@ -437,6 +472,7 @@
         window.onload = function() {
             drawSim();
             updateStatsUI();
+            checkRealRobotConnection();
         };
     </script>
 </body>
