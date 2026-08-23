@@ -2,151 +2,281 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🐹 AI 햄스터 로봇 스마트 분리배출 관제센터 & 시뮬레이터</title>
-    <!-- TensorFlow.js & Teachable Machine Web Engine -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🐹 AI 햄스터 로봇 오프라인 스마트 관제센터 & 시뮬레이터</title>
+
+    <!-- 📱 Apple iOS & Android PWA 모바일 전용 메타 태그 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="햄스터 관제">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0b0f19">
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; user-select: none; }
-        body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; padding: 12px; }
-        
-        /* Header */
-        header { text-align: center; margin-bottom: 12px; padding: 16px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        h1 { font-size: 1.25rem; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
-        
-        /* Mode Tab Bar */
-        .tab-bar { display: flex; background: #0f172a; border-radius: 20px; padding: 4px; border: 1px solid #334155; margin: 0 auto; max-width: 480px; gap: 4px; }
-        .tab-btn { flex: 1; padding: 9px 8px; font-size: 0.8rem; font-weight: bold; border: none; border-radius: 16px; color: #94a3b8; background: transparent; cursor: pointer; transition: all 0.2s; }
-        .tab-btn.active { background: #38bdf8; color: #0f172a; box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4); }
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(22, 30, 49, 0.75);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #a855f7;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+        }
 
-        /* ZIP Download Bar */
-        .download-card { margin-bottom: 12px; }
-        .btn-download { width: 100%; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 14px; padding: 14px; font-size: 0.95rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: transform 0.1s; }
-        .btn-download:active { transform: scale(0.98); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg-color);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 12px;
+            padding-bottom: env(safe-area-inset-bottom, 12px);
+        }
 
-        /* Panel Views */
+        /* 💎 프리미엄 헤더 */
+        header {
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 16px 12px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .offline-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        /* 모드 탭 셀렉터 */
+        .tab-bar {
+            display: flex;
+            background: rgba(11, 15, 25, 0.8);
+            border-radius: 16px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            margin: 0 auto;
+            max-width: 440px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            color: #94a3b8;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #0b0f19;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.35);
+        }
+
+        /* 패널 관리 */
         .panel { display: none; }
         .panel.active { display: block; }
 
-        /* Simulator Card */
-        .sim-card { background: #1e293b; border-radius: 16px; padding: 14px; border: 2px solid #a855f7; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.2); }
-        .card-title { font-size: 0.9rem; font-weight: bold; color: #c084fc; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        canvas#simCanvas { background: #0f172a; border-radius: 12px; border: 1px solid #334155; width: 100%; max-width: 480px; height: 260px; }
-        .status-pill { font-size: 0.8rem; background: #581c87; color: #f3e8ff; padding: 8px 12px; border-radius: 20px; text-align: center; margin-top: 10px; font-weight: bold; }
+        /* 🔮 카드 스타일 */
+        .card-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
 
-        /* AI Recognition Display Box */
-        .ai-hud-box { background: #1e293b; border-radius: 16px; padding: 14px; border: 2px solid #0284c7; margin-bottom: 12px; }
-        .ai-title { font-size: 0.85rem; font-weight: bold; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; }
-        .ai-result-tag { font-size: 1.15rem; font-weight: bold; color: #38bdf8; text-align: center; padding: 8px; background: #0f172a; border-radius: 10px; border: 1px solid #334155; margin-bottom: 10px; }
-        .prob-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.8rem; }
-        .prob-label { width: 85px; text-align: left; }
-        .prob-track { flex: 1; background: #0f172a; height: 14px; border-radius: 7px; overflow: hidden; border: 1px solid #334155; }
-        .prob-fill { height: 100%; width: 0%; transition: width 0.2s; }
-        .prob-val { width: 40px; text-align: right; font-weight: bold; }
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-        /* Camera Card */
-        .cam-card { background: #1e293b; border-radius: 16px; padding: 14px; border: 2px solid #38bdf8; margin-bottom: 12px; text-align: center; }
-        #webcam-container { width: 100%; max-width: 300px; height: 260px; margin: 0 auto; border-radius: 14px; overflow: hidden; border: 2px solid #38bdf8; background: #000; display: flex; align-items: center; justify-content: center; }
-        #webcam-container video, #webcam-container canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
-        .btn-cam-start { width: 100%; max-width: 300px; margin: 10px auto 0; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        canvas#simCanvas {
+            background: #070a12;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 460px;
+            height: 250px;
+            display: block;
+            margin: 0 auto;
+        }
 
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; font-size: 0.75rem; text-align: center; }
-        .stat-box { background: #0f172a; padding: 6px; border-radius: 8px; border: 1px solid #334155; }
-        .stat-val { font-size: 0.95rem; font-weight: bold; color: #38bdf8; }
+        .stream-img {
+            width: 100%;
+            border-radius: 14px;
+            border: 2px solid var(--accent-cyan);
+            display: block;
+        }
 
-        /* Control Sections */
-        .section-box { background: #1e293b; border-radius: 16px; padding: 14px; border: 1px solid #334155; margin-bottom: 12px; }
-        .section-title { font-size: 0.85rem; font-weight: bold; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; }
+        .status-pill {
+            font-size: 0.8rem;
+            background: rgba(168, 85, 247, 0.15);
+            color: #d8b4fe;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            padding: 8px 12px;
+            border-radius: 14px;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 700;
+        }
+
+        /* AI 확률 HUD */
+        .ai-result-tag {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            text-align: center;
+            padding: 10px;
+            background: rgba(7, 10, 18, 0.6);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+
+        .prob-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.78rem; }
+        .prob-label { width: 75px; font-weight: 600; }
+        .prob-track { flex: 1; background: rgba(7, 10, 18, 0.6); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); }
+        .prob-fill { height: 100%; width: 0%; transition: width 0.2s ease; }
+        .prob-val { width: 35px; text-align: right; font-weight: bold; }
+
+        /* 📱 안드로이드 & 아이폰 터치 컨트롤 그리드 */
         .sort-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        
-        .btn { background: #334155; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; padding: 14px; cursor: pointer; transition: all 0.1s; }
-        .btn:active { transform: scale(0.96); opacity: 0.9; }
-        .btn-sort { padding: 14px 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .btn-paper { background: #854d0e; }
-        .btn-paperpack { background: #0891b2; }
-        .btn-plastic { background: #1e40af; }
-        .btn-can { background: #15803d; }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            opacity: 0.85;
+            background: var(--accent-cyan);
+            color: #0b0f19;
+        }
+
+        .btn-paper { background: linear-gradient(135deg, #78350f, #92400e); }
+        .btn-paperpack { background: linear-gradient(135deg, #0e7490, #155e75); }
+        .btn-plastic { background: linear-gradient(135deg, #1e3a8a, #1e40af); }
+        .btn-can { background: linear-gradient(135deg, #14532d, #166534); }
 
         .dpad-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .dpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; aspect-ratio: 1; max-width: 170px; margin: 0 auto; }
-        .btn-drive { font-size: 1.3rem; background: #3b82f6; }
-        .btn-stop { background: #ef4444; color: white; grid-column: 2; grid-row: 2; font-size: 0.85rem; }
-        .btn-grip-open { background: #10b981; }
-        .btn-grip-close { background: #f59e0b; }
+        .btn-drive { font-size: 1.3rem; background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .btn-stop { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; grid-column: 2; grid-row: 2; font-size: 0.85rem; }
+        .btn-grip-open { background: linear-gradient(135deg, #059669, #10b981); }
+        .btn-grip-close { background: linear-gradient(135deg, #d97706, #f59e0b); }
+
+        .download-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            margin-bottom: 12px;
+        }
 
         footer { font-size: 0.7rem; text-align: center; color: #64748b; margin-top: auto; padding-top: 10px; }
     </style>
 </head>
 <body>
     <header>
-        <h1>🐹 AI 햄스터 로봇 스마트 분리배출</h1>
+        <h1>🐹 AI 햄스터 로봇 분리배출</h1>
+        <div style="margin-bottom: 8px;"><span class="offline-badge">⚡ 100% 인터넷 독립 오프라인 가동 중</span></div>
         <div class="tab-bar">
             <button id="tab-sim" class="tab-btn active" onclick="setTab('sim')">🧪 2D 시뮬레이터</button>
-            <button id="tab-cam" class="tab-btn" onclick="setTab('cam')">📹 웹캠 AI 카메라인식</button>
-            <button id="tab-real" class="tab-btn" onclick="setTab('real')">🤖 실제 로봇연동</button>
+            <button id="tab-real" class="tab-btn" onclick="setTab('real')">🤖 실제 햄스터봇</button>
         </div>
     </header>
 
-    <!-- ZIP Download Link -->
-    <div class="download-card">
-        <a href="https://github.com/logic4rest/hamster/archive/refs/heads/main.zip" class="btn-download" download>
-            📥 햄스터 분리배출 전체 소스코드 & 실행파일 (.zip) 다운로드
-        </a>
-    </div>
+    <a href="https://github.com/logic4rest/hamster/archive/refs/heads/main.zip" class="download-btn" download>
+        📥 소스코드 & 실행파일 (.exe) 전체 다운로드 (ZIP)
+    </a>
 
-    <!-- 1. 2D Simulator Panel -->
+    <!-- 1. 2D 시뮬레이터 패널 -->
     <div id="panel-sim" class="panel active">
-        <div class="sim-card">
-            <div class="card-title">🎮 2D 가상 햄스터 분리배출 아레나</div>
-            <canvas id="simCanvas" width="400" height="260"></canvas>
-            <div id="simLog" class="status-pill">대기 중: 아래 1~4번 수거 버튼을 누르시면 자율주행 시뮬레이션이 진행됩니다!</div>
+        <div class="card-box" style="border-color: var(--accent-purple); text-align: center;">
+            <div class="card-title" style="color: #c084fc; justify-content: center;">🎮 2D 가상 햄스터 분리배출 아레나</div>
+            <canvas id="simCanvas" width="400" height="250"></canvas>
+            <div id="simLog" class="status-pill">대기 중: 아래 수거 버튼을 누르시면 자율주행 시뮬레이션이 진행됩니다!</div>
         </div>
     </div>
 
-    <!-- 2. Camera AI Panel -->
-    <div id="panel-cam" class="panel">
-        <div class="cam-card">
-            <div class="card-title" style="color: #38bdf8;">📷 브라우저 실시간 AI 쓰레기 감지</div>
-            <div id="webcam-container">
-                <span style="color: #64748b; font-size: 0.85rem;">[카메라 시작] 버튼을 누르세요</span>
-            </div>
-            <button id="btn-cam-init" class="btn-cam-start" onclick="initWebcamAI()">📷 스마트폰/웹캠 AI 카메라 켜기</button>
-            <div id="camLog" class="status-pill" style="background: #0284c7; margin-top: 8px;">대기 중</div>
-        </div>
-    </div>
-
-    <!-- 3. Physical Robot Panel (유저 요구사항: 실물 햄스터 로봇 가동 100% 보장) -->
+    <!-- 2. 실제 햄스터봇 패널 -->
     <div id="panel-real" class="panel">
-        <div class="sim-card" style="border-color: #38bdf8; text-align: left; padding: 16px;">
-            <div class="card-title" style="color: #38bdf8; text-align: center; margin-bottom: 12px; font-size: 1rem;">
-                🤖 실물 햄스터 로봇 1:1 하드웨어 통신 가동 센터
-            </div>
-
-            <div id="real-robot-status-box" style="background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 12px;">
-                <div style="font-size: 0.85rem; font-weight: bold; color: #94a3b8;">📡 로봇 연결 상태:</div>
-                <div id="real-robot-msg" style="font-size: 0.95rem; font-weight: bold; color: #38bdf8; margin-top: 4px;">
-                    🔄 로컬 파이썬 통신 엔진 연결 확인 중...
-                </div>
-            </div>
-
-            <button class="btn" style="width: 100%; background: #0284c7; color: white; margin-bottom: 12px;" onclick="checkRealRobotConnection()">
-                🔄 실물 햄스터 로봇 연결 상태 재확인
-            </button>
-
-            <div style="background: #1e293b; padding: 10px; border-radius: 8px; font-size: 0.8rem; color: #cbd5e1; line-height: 1.5;">
-                <strong style="color: #f59e0b;">💡 실물 로봇을 직접 움직이는 방법:</strong><br>
-                1. 바탕화면의 <b>[햄스터_분리배출_실행.bat]</b> 또는 <b>[햄스터_분리배출_실행파일.bat]</b>을 더블클릭합니다.<br>
-                2. 컴퓨터에 햄스터 로봇 동글을 꽂으면 <b>블루투스로 실물 햄스터 로봇이 1:1 연결</b>됩니다.<br>
-                3. 연결 후 아래 수거 버튼이나 방향키를 누르시면 <b>실물 로봇이 실제로 주행하고 집게를 오므립니다!</b>
-            </div>
+        <div class="card-box" style="border-color: var(--accent-cyan);">
+            <div class="card-title" style="color: var(--accent-cyan); justify-content: center;">🤖 실물 햄스터봇 연동 안내</div>
+            <p style="font-size: 0.85rem; color: #cbd5e1; margin: 10px 0; line-height: 1.5;">
+                바탕화면의 <b>[햄스터_분리배출_실행.bat]</b> 또는 <b>[햄스터_분리배출_실행파일.bat]</b>을 더블클릭하면 오프라인으로 1:1 실물 조종이 가동됩니다.
+            </p>
         </div>
     </div>
 
-    <!-- 🤖 AI 실시간 인식 결과 & 확률 바 HUD -->
-    <div class="ai-hud-box">
-        <div class="ai-title">🤖 AI 실시간 감지 분석 결과</div>
+    <!-- 🤖 AI 인식 결과 HUD -->
+    <div class="card-box" style="border-color: var(--accent-blue);">
+        <div class="card-title">🤖 AI 실시간 감지 분석 결과</div>
         <div id="ai-tag" class="ai-result-tag">🔍 쓰레기 감지 대기 중...</div>
         <div class="prob-row">
             <span class="prob-label">📄 종이</span>
@@ -170,33 +300,21 @@
         </div>
     </div>
 
-    <!-- One-Touch Waste Sorting Buttons -->
-    <div class="section-box">
-        <div class="section-title">♻️ 원터치 스마트 분리배출 자율 수거</div>
+    <!-- 원터치 자율 수거 버튼 -->
+    <div class="card-box">
+        <div class="card-title">♻️ 스마트 분리배출 자율 수거</div>
         <div class="sort-grid">
-            <button class="btn btn-sort btn-paper" onclick="triggerSort('종이')">📄 1번 종이</button>
-            <button class="btn btn-sort btn-paperpack" onclick="triggerSort('종이팩')">🩵 2번 종이팩</button>
-            <button class="btn btn-sort btn-plastic" onclick="triggerSort('플라스틱/페트병')">🥤 3번 페트병</button>
-            <button class="btn btn-sort btn-can" onclick="triggerSort('캔')">🥫 4번 캔</button>
+            <button class="btn btn-paper" onclick="triggerSort('종이')">📄 1번 종이</button>
+            <button class="btn btn-paperpack" onclick="triggerSort('종이팩')">🩵 2번 종이팩</button>
+            <button class="btn btn-plastic" onclick="triggerSort('플라스틱/페트병')">🥤 3번 페트병</button>
+            <button class="btn btn-can" onclick="triggerSort('캔')">🥫 4번 캔</button>
         </div>
     </div>
 
-    <!-- Live Statistics -->
-    <div class="section-box" style="padding: 10px;">
-        <div class="section-title" style="margin-bottom: 4px;">📊 누적 수거 통계</div>
-        <div class="stats-grid">
-            <div class="stat-box">종이<div id="st-paper" class="stat-val">0</div></div>
-            <div class="stat-box">종이팩<div id="st-paperpack" class="stat-val">0</div></div>
-            <div class="stat-box">페트병<div id="st-plastic" class="stat-val">0</div></div>
-            <div class="stat-box">캔<div id="st-can" class="stat-val">0</div></div>
-            <div class="stat-box">전체<div id="st-total" class="stat-val">0</div></div>
-        </div>
-    </div>
-
-    <!-- Manual D-Pad & Gripper Controls -->
+    <!-- 터치 수동 D-Pad & 집게 제어 -->
     <div class="dpad-layout">
-        <div class="section-box">
-            <div class="section-title">🕹️ 방향 주행</div>
+        <div class="card-box">
+            <div class="card-title">🕹️ 방향 주행</div>
             <div class="dpad">
                 <button class="btn btn-drive" style="grid-column: 2; grid-row: 1;" onclick="drive('up')">▲</button>
                 <button class="btn btn-drive" style="grid-column: 1; grid-row: 2;" onclick="drive('left')">◀</button>
@@ -206,41 +324,41 @@
             </div>
         </div>
 
-        <div class="section-box" style="display: flex; flex-direction: column; justify-content: space-between;">
-            <div class="section-title">🦾 집게 제어</div>
+        <div class="card-box" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="card-title">🦾 집게 제어</div>
             <button class="btn btn-grip-open" style="margin-bottom: 8px;" onclick="controlGripper('open')">👐 집게 펴기 (OPEN)</button>
             <button class="btn btn-grip-close" onclick="controlGripper('close')">✊ 집게 닫기 (CLOSE)</button>
         </div>
     </div>
 
     <footer>
-        AI 햄스터 로봇 스마트 분리배출 웹 관제센터 v2.6 | logic4rest
+        AI 햄스터 로봇 스마트 분리배출 오프라인 관제센터 v3.0 | logic4rest
     </footer>
 
     <script>
         let currentTab = 'sim';
-        const stats = { '종이': 0, '종이팩': 0, '플라스틱/페트병': 0, '캔': 0, 'total': 0 };
 
-        function checkRealRobotConnection() {
-            const msgBox = document.getElementById('real-robot-msg');
-            msgBox.innerText = "🔄 실물 로봇 파이썬 엔젠 연결 확인 중...";
-            fetch('http://192.168.219.105:5000/api/status')
-                .then(r => r.json())
-                .then(d => {
-                    msgBox.innerText = d.message;
-                    msgBox.style.color = d.robot_connected ? "#10b981" : "#f59e0b";
-                })
-                .catch(() => {
-                    msgBox.innerText = "⚠️ 로컬 파이썬 서버가 꺼져 있습니다. 바탕화면의 [햄스터_분리배출_실행.bat]을 더블클릭하여 연결하세요!";
-                    msgBox.style.color = "#ef4444";
-                });
+        function triggerHaptic() {
+            if (navigator.vibrate) {
+                try { navigator.vibrate(40); } catch(e) {}
+            }
+        }
+
+        function setTab(tab) {
+            triggerHaptic();
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('panel-' + tab).classList.add('active');
         }
 
         function updateAIHUD(category, prob, paperP, packP, plasticP, canP) {
             const tag = document.getElementById('ai-tag');
             if (category !== '없음') {
                 tag.innerText = "★ [인식 확정] " + category + " (" + (prob*100).toFixed(0) + "%) [6/6프레임]";
-                tag.style.color = "#38bdf8";
+                tag.style.color = "#00f2fe";
             } else {
                 tag.innerText = "🔍 쓰레기 감지 대기 중...";
                 tag.style.color = "#94a3b8";
@@ -259,27 +377,6 @@
             document.getElementById('val-can').innerText = canP + "%";
         }
 
-        function setTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            
-            document.getElementById('tab-' + tab).classList.add('active');
-            document.getElementById('panel-' + tab).classList.add('active');
-
-            if (tab === 'real') {
-                checkRealRobotConnection();
-            }
-        }
-
-        function updateStatsUI() {
-            document.getElementById('st-paper').innerText = stats['종이'];
-            document.getElementById('st-paperpack').innerText = stats['종이팩'];
-            document.getElementById('st-plastic').innerText = stats['플라스틱/페트병'];
-            document.getElementById('st-can').innerText = stats['캔'];
-            document.getElementById('st-total').innerText = stats['total'];
-        }
-
         function playBeepSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -294,11 +391,13 @@
         }
 
         function drive(dir) {
+            triggerHaptic();
             moveSimRobot(dir);
             fetch('http://192.168.219.105:5000/api/drive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) }).catch(() => {});
         }
 
         function controlGripper(action) {
+            triggerHaptic();
             simGripperState = action;
             drawSim();
             playBeepSound();
@@ -306,6 +405,7 @@
         }
 
         function triggerSort(category) {
+            triggerHaptic();
             if (category === '종이') updateAIHUD('종이', 0.98, 98, 2, 0, 0);
             else if (category === '종이팩') updateAIHUD('종이팩', 0.95, 2, 95, 3, 0);
             else if (category === '플라스틱/페트병') updateAIHUD('플라스틱/페트병', 0.97, 1, 2, 97, 0);
@@ -315,19 +415,19 @@
             fetch('http://192.168.219.105:5000/api/sort', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: category }) }).catch(() => {});
         }
 
-        /* 🎮 2D Canvas Simulator Engine */
+        /* 🎮 오프라인 2D 캔버스 시뮬레이터 */
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas ? canvas.getContext('2d') : null;
         
-        let simRobot = { x: 200, y: 130, angle: 0, originX: 200, originY: 130 };
+        let simRobot = { x: 200, y: 125, angle: 0, originX: 200, originY: 125 };
         let simGripperState = 'open';
         let simRunning = false;
 
         const simBins = {
-            '종이': { x: 340, y: 50, color: '#854d0e', label: '1번 종이' },
-            '종이팩': { x: 340, y: 210, color: '#0891b2', label: '2번 종이팩' },
-            '플라스틱/페트병': { x: 60, y: 50, color: '#1e40af', label: '3번 페트병' },
-            '캔': { x: 60, y: 210, color: '#15803d', label: '4번 캔' }
+            '종이': { x: 340, y: 45, color: '#92400e', label: '1번 종이' },
+            '종이팩': { x: 340, y: 205, color: '#0e7490', label: '2번 종이팩' },
+            '플라스틱/페트병': { x: 60, y: 45, color: '#1e40af', label: '3번 페트병' },
+            '캔': { x: 60, y: 205, color: '#166534', label: '4번 캔' }
         };
 
         function drawSim() {
@@ -338,7 +438,7 @@
             for(let x=0; x<canvas.width; x+=40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
             for(let y=0; y<canvas.height; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
 
-            ctx.fillStyle = '#38bdf8';
+            ctx.fillStyle = '#00f2fe';
             ctx.beginPath(); ctx.arc(simRobot.originX, simRobot.originY, 6, 0, Math.PI*2); ctx.fill();
             ctx.font = '10px sans-serif'; ctx.fillText('시작점(0,0)', simRobot.originX-25, simRobot.originY+18);
 
@@ -433,9 +533,6 @@
                                             simRobot.y = simRobot.originY;
                                             log.innerText = "✅ 시작 위치 복귀 완료! (오차: 0.0000 cm PASS)";
                                             simRunning = false;
-                                            stats[category]++;
-                                            stats.total++;
-                                            updateStatsUI();
                                             drawSim();
                                         }
                                     }, 50);
@@ -447,32 +544,8 @@
             }, 500);
         }
 
-        /* 📷 Browser Webcam Camera Engine */
-        async function initWebcamAI() {
-            const log = document.getElementById('camLog');
-            log.innerText = "📷 웹캠 카메라 접근 권한 요청 중...";
-            const container = document.getElementById("webcam-container");
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                container.innerHTML = "";
-                const video = document.createElement("video");
-                video.srcObject = stream;
-                video.autoplay = true;
-                video.playsInline = true;
-                container.appendChild(video);
-
-                log.innerText = "✅ 카메라 가동 완료! 쓰레기를 카메라에 비추어 주세요.";
-                document.getElementById('btn-cam-init').style.display = 'none';
-            } catch(e) {
-                log.innerText = "⚠️ 카메라 켜기 실패: " + e.message;
-            }
-        }
-
         window.onload = function() {
             drawSim();
-            updateStatsUI();
-            checkRealRobotConnection();
         };
     </script>
 </body>

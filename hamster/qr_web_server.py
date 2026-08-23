@@ -1,10 +1,10 @@
 """
-스마트폰 QR 모바일 리모컨 & 2D/3D 시뮬레이터 & AI 실시간 인식 바 HUD 웹서버 (v2.5)
-==================================================================================
-- 실시간 AI 인식 결과 및 쓰레기 4종 확률 프로그레스 바 하단 오버레이 탑재
-- 모드 전환: [🧪 웹 2D 시뮬레이션 모드] <---> [🤖 실제 햄스터봇 조종 모드]
-- 실시간 2D 캔버스 아레나 시뮬레이터 (스마트폰/웹 브라우저에서 바로 주행 검증)
-- 소스코드 및 실행 가이드 압축 다운로드 기능 (/download)
+스마트폰 QR 모바일 리모컨 & 오프라인 2D/3D 시뮬레이터 & AI 관제 웹서버 (v3.0 100% 오프라인 에디션)
+====================================================================================================
+- 100% 인터넷 연결 없이 오프라인 가동 (외부 CDN 링크 제거)
+- 안드로이드 (Android) & 아이폰/아이패드 (Apple iOS) 터치 제어 & 진동(Haptic) 피드백 지원
+- 모바일 웹앱 PWA (Progressive Web App) 메타 태그 내장
+- 프리미엄 네온 글래스모피즘 (Glassmorphism) UI/UX 구현
 """
 
 import io
@@ -42,97 +42,284 @@ current_mode = "simulation"
 
 app = Flask(__name__)
 
-HTML_DASHBOARD = """
+HTML_OFFLINE_DASHBOARD = """
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🐹 스마트 햄스터 분리배출 관제 & 시뮬레이터 센터</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; user-select: none; }
-        body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; padding: 12px; }
-        header { text-align: center; margin-bottom: 12px; padding: 14px; background: #1e293b; border-radius: 14px; border: 1px solid #334155; position: relative; }
-        h1 { font-size: 1.2rem; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
-        .mode-toggle { display: flex; background: #0f172a; border-radius: 20px; padding: 3px; border: 1px solid #334155; margin: 8px auto 0; max-width: 320px; }
-        .mode-btn { flex: 1; padding: 8px 12px; font-size: 0.8rem; font-weight: bold; border: none; border-radius: 16px; color: #94a3b8; background: transparent; cursor: pointer; transition: all 0.2s; }
-        .mode-btn.active { background: #38bdf8; color: #0f172a; box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4); }
-        .download-bar { margin-bottom: 12px; }
-        .btn-download { width: 100%; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 12px; padding: 14px; font-size: 0.95rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: transform 0.1s; }
-        .btn-download:active { transform: scale(0.98); }
-        .view-panel { display: none; }
-        .view-panel.active { display: block; }
-        .stream-card { background: #000; border-radius: 14px; overflow: hidden; border: 2px solid #38bdf8; margin-bottom: 12px; position: relative; box-shadow: 0 4px 14px rgba(0,0,0,0.5); }
-        .stream-card img { width: 100%; display: block; }
-        .sim-card { background: #1e293b; border-radius: 14px; padding: 12px; border: 2px solid #a855f7; margin-bottom: 12px; text-align: center; }
-        canvas { background: #0f172a; border-radius: 10px; border: 1px solid #334155; width: 100%; max-width: 480px; height: 260px; }
-        .status-pill { font-size: 0.8rem; background: #581c87; color: #f3e8ff; padding: 8px 12px; border-radius: 20px; text-align: center; margin-top: 6px; font-weight: bold; }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🐹 AI 햄스터 로봇 오프라인 스마트 관제센터</title>
 
-        /* AI Recognition Display Card */
-        .ai-hud-box { background: #1e293b; border-radius: 14px; padding: 12px; border: 2px solid #0284c7; margin-bottom: 12px; }
-        .ai-title { font-size: 0.85rem; font-weight: bold; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; }
-        .ai-result-tag { font-size: 1.1rem; font-weight: bold; color: #38bdf8; text-align: center; padding: 6px; background: #0f172a; border-radius: 8px; border: 1px solid #334155; margin-bottom: 8px; }
-        .prob-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 0.75rem; }
-        .prob-label { width: 75px; text-align: left; }
-        .prob-track { flex: 1; background: #0f172a; height: 12px; border-radius: 6px; overflow: hidden; }
-        .prob-fill { height: 100%; width: 0%; transition: width 0.2s; }
+    <!-- 📱 Apple iOS & Android PWA 모바일 전용 메타 태그 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="햄스터 관제">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0b0f19">
+
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(22, 30, 49, 0.75);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #a855f7;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg-color);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 12px;
+            padding-bottom: env(safe-area-inset-bottom, 12px);
+        }
+
+        /* 💎 프리미엄 헤더 */
+        header {
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 16px 12px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .offline-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        /* 모드 탭 셀렉터 */
+        .tab-bar {
+            display: flex;
+            background: rgba(11, 15, 25, 0.8);
+            border-radius: 16px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            margin: 0 auto;
+            max-width: 440px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            color: #94a3b8;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #0b0f19;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.35);
+        }
+
+        /* 패널 관리 */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* 🔮 카드 스타일 */
+        .card-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        canvas#simCanvas {
+            background: #070a12;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 460px;
+            height: 250px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .stream-img {
+            width: 100%;
+            border-radius: 14px;
+            border: 2px solid var(--accent-cyan);
+            display: block;
+        }
+
+        .status-pill {
+            font-size: 0.8rem;
+            background: rgba(168, 85, 247, 0.15);
+            color: #d8b4fe;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            padding: 8px 12px;
+            border-radius: 14px;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 700;
+        }
+
+        /* AI 확률 HUD */
+        .ai-result-tag {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            text-align: center;
+            padding: 10px;
+            background: rgba(7, 10, 18, 0.6);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+
+        .prob-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.78rem; }
+        .prob-label { width: 75px; font-weight: 600; }
+        .prob-track { flex: 1; background: rgba(7, 10, 18, 0.6); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); }
+        .prob-fill { height: 100%; width: 0%; transition: width 0.2s ease; }
         .prob-val { width: 35px; text-align: right; font-weight: bold; }
 
-        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .section-box { background: #1e293b; border-radius: 14px; padding: 12px; border: 1px solid #334155; }
-        .section-title { font-size: 0.85rem; font-weight: bold; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .dpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; aspect-ratio: 1; max-width: 170px; margin: 0 auto; }
-        .btn { background: #334155; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; padding: 14px; cursor: pointer; transition: all 0.1s; }
-        .btn:active { background: #38bdf8; color: #0f172a; transform: scale(0.95); }
-        .btn-drive { font-size: 1.3rem; background: #3b82f6; }
-        .btn-stop { background: #ef4444; color: white; grid-column: 2; grid-row: 2; font-size: 0.9rem; }
-        .btn-grip-open { background: #10b981; }
-        .btn-grip-close { background: #f59e0b; }
+        /* 📱 안드로이드 & 아이폰 터치 컨트롤 그리드 */
         .sort-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn-sort { font-size: 0.9rem; padding: 12px 6px; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.1); }
-        .btn-paper { background: #854d0e; }
-        .btn-paperpack { background: #0891b2; }
-        .btn-plastic { background: #1e40af; }
-        .btn-can { background: #15803d; }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            opacity: 0.85;
+            background: var(--accent-cyan);
+            color: #0b0f19;
+        }
+
+        .btn-paper { background: linear-gradient(135deg, #78350f, #92400e); }
+        .btn-paperpack { background: linear-gradient(135deg, #0e7490, #155e75); }
+        .btn-plastic { background: linear-gradient(135deg, #1e3a8a, #1e40af); }
+        .btn-can { background: linear-gradient(135deg, #14532d, #166534); }
+
+        .dpad-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .dpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; aspect-ratio: 1; max-width: 170px; margin: 0 auto; }
+        .btn-drive { font-size: 1.3rem; background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .btn-stop { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; grid-column: 2; grid-row: 2; font-size: 0.85rem; }
+        .btn-grip-open { background: linear-gradient(135deg, #059669, #10b981); }
+        .btn-grip-close { background: linear-gradient(135deg, #d97706, #f59e0b); }
+
+        .download-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            margin-bottom: 12px;
+        }
+
         footer { font-size: 0.7rem; text-align: center; color: #64748b; margin-top: auto; padding-top: 10px; }
     </style>
 </head>
 <body>
     <header>
-        <h1>🐹 햄스터 분리배출관제센터</h1>
-        <div class="mode-toggle">
-            <button id="btn-mode-sim" class="mode-btn active" onclick="switchMode('sim')">🧪 시뮬레이션 모드</button>
-            <button id="btn-mode-real" class="mode-btn" onclick="switchMode('real')">🤖 실제 햄스터봇</button>
+        <h1>🐹 AI 햄스터 로봇 분리배출</h1>
+        <div style="margin-bottom: 8px;"><span class="offline-badge">⚡ 100% 인터넷 독립 오프라인 가동 중</span></div>
+        <div class="tab-bar">
+            <button id="tab-sim" class="tab-btn active" onclick="setTab('sim')">🧪 2D 시뮬레이터</button>
+            <button id="tab-real" class="tab-btn" onclick="setTab('real')">🤖 실제 햄스터봇</button>
         </div>
     </header>
 
-    <div class="download-bar">
-        <a href="/download" class="btn-download" download>
-            📥 햄스터 분리배출 프로그램 & 실행파일 전체 다운로드 (ZIP)
-        </a>
-    </div>
+    <a href="/download" class="download-btn" download>
+        📥 소스코드 & 실행파일 (.exe) 전체 다운로드 (ZIP)
+    </a>
 
-    <!-- 1. 시뮬레이션 모드 화면 -->
-    <div id="panel-sim" class="view-panel active">
-        <div class="sim-card">
-            <div class="section-title" style="color: #c084fc; margin-bottom: 6px;">🎮 2D 가상 햄스터 분리배출 아레나</div>
-            <canvas id="simCanvas" width="400" height="260"></canvas>
-            <div id="simLog" class="status-pill">대기 중: 아래 수거 버튼을 누르시면 자율주행 시뮬레이션이 실행됩니다.</div>
+    <!-- 1. 2D 시뮬레이터 패널 -->
+    <div id="panel-sim" class="panel active">
+        <div class="card-box" style="border-color: var(--accent-purple); text-align: center;">
+            <div class="card-title" style="color: #c084fc; justify-content: center;">🎮 2D 가상 햄스터 분리배출 아레나</div>
+            <canvas id="simCanvas" width="400" height="250"></canvas>
+            <div id="simLog" class="status-pill">대기 중: 아래 수거 버튼을 누르시면 자율주행 시뮬레이션이 진행됩니다!</div>
         </div>
     </div>
 
-    <!-- 2. 실제 햄스터봇 모드 화면 -->
-    <div id="panel-real" class="view-panel">
-        <div class="stream-card">
-            <img src="/video_feed" alt="실시간 카메라 스트리밍">
+    <!-- 2. 실제 햄스터봇 패널 -->
+    <div id="panel-real" class="panel">
+        <div class="card-box" style="border-color: var(--accent-cyan);">
+            <div class="card-title" style="color: var(--accent-cyan); justify-content: center;">📹 실물 웹캠 & 햄스터봇 실시간 라이브 스트림</div>
+            <img src="/video_feed" class="stream-img" alt="실물 로봇 카메라 라이브">
         </div>
     </div>
 
-    <!-- 🤖 AI 실시간 인식 결과 & 확률 바 HUD (유저 요구사항 100% 반영) -->
-    <div class="ai-hud-box">
-        <div class="ai-title">🤖 AI 실시간 감지 분석 결과</div>
+    <!-- 🤖 AI 인식 결과 HUD -->
+    <div class="card-box" style="border-color: var(--accent-blue);">
+        <div class="card-title">🤖 AI 실시간 감지 분석 결과</div>
         <div id="ai-tag" class="ai-result-tag">🔍 쓰레기 감지 대기 중...</div>
         <div class="prob-row">
             <span class="prob-label">📄 종이</span>
@@ -156,21 +343,21 @@ HTML_DASHBOARD = """
         </div>
     </div>
 
-    <!-- 분리배출 제어 버튼 -->
-    <div class="section-box" style="margin-bottom: 12px;">
-        <div class="section-title">♻️ 원터치 스마트 분리배출 수거</div>
+    <!-- 원터치 자율 수거 버튼 -->
+    <div class="card-box">
+        <div class="card-title">♻️ 스마트 분리배출 자율 수거</div>
         <div class="sort-grid">
-            <button class="btn btn-sort btn-paper" onclick="triggerSort('종이')">📄 1번 종이</button>
-            <button class="btn btn-sort btn-paperpack" onclick="triggerSort('종이팩')">🩵 2번 종이팩</button>
-            <button class="btn btn-sort btn-plastic" onclick="triggerSort('플라스틱/페트병')">🥤 3번 페트병</button>
-            <button class="btn btn-sort btn-can" onclick="triggerSort('캔')">🥫 4번 캔</button>
+            <button class="btn btn-paper" onclick="triggerSort('종이')">📄 1번 종이</button>
+            <button class="btn btn-paperpack" onclick="triggerSort('종이팩')">🩵 2번 종이팩</button>
+            <button class="btn btn-plastic" onclick="triggerSort('플라스틱/페트병')">🥤 3번 페트병</button>
+            <button class="btn btn-can" onclick="triggerSort('캔')">🥫 4번 캔</button>
         </div>
     </div>
 
-    <!-- 방향 조종 & 집게 버튼 -->
-    <div class="grid-layout">
-        <div class="section-box">
-            <div class="section-title">🕹️ 로봇 방향 주행</div>
+    <!-- 터치 수동 D-Pad & 집게 제어 -->
+    <div class="dpad-layout">
+        <div class="card-box">
+            <div class="card-title">🕹️ 방향 주행</div>
             <div class="dpad">
                 <button class="btn btn-drive" style="grid-column: 2; grid-row: 1;" onclick="drive('up')">▲</button>
                 <button class="btn btn-drive" style="grid-column: 1; grid-row: 2;" onclick="drive('left')">◀</button>
@@ -180,25 +367,42 @@ HTML_DASHBOARD = """
             </div>
         </div>
 
-        <div class="section-box" style="display: flex; flex-direction: column; justify-content: space-between;">
-            <div class="section-title">🦾 집게 열기/닫기</div>
-            <button class="btn btn-grip-open" style="margin-bottom: 8px;" onclick="controlGripper('open')">👐 집게 열기 (OPEN)</button>
+        <div class="card-box" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="card-title">🦾 집게 제어</div>
+            <button class="btn btn-grip-open" style="margin-bottom: 8px;" onclick="controlGripper('open')">👐 집게 펴기 (OPEN)</button>
             <button class="btn btn-grip-close" onclick="controlGripper('close')">✊ 집게 닫기 (CLOSE)</button>
         </div>
     </div>
 
     <footer>
-        AI 스마트 햄스터 분리배출관제센터 v2.5 | logic4rest
+        AI 햄스터 로봇 스마트 분리배출 오프라인 관제센터 v3.0 | logic4rest
     </footer>
 
     <script>
-        let currentMode = 'sim';
-        
+        let currentTab = 'sim';
+
+        // 📱 안드로이드 & 아이폰 Haptic 진동 피드백 지원
+        function triggerHaptic() {
+            if (navigator.vibrate) {
+                try { navigator.vibrate(40); } catch(e) {}
+            }
+        }
+
+        function setTab(tab) {
+            triggerHaptic();
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('panel-' + tab).classList.add('active');
+        }
+
         function updateAIHUD(category, prob, paperP, packP, plasticP, canP) {
             const tag = document.getElementById('ai-tag');
             if (category !== '없음') {
-                tag.innerText = "★ [인식 확정] " + category + " (" + (prob*100).toFixed(0) + "%)";
-                tag.style.color = "#38bdf8";
+                tag.innerText = "★ [인식 확정] " + category + " (" + (prob*100).toFixed(0) + "%) [6/6프레임]";
+                tag.style.color = "#00f2fe";
             } else {
                 tag.innerText = "🔍 쓰레기 감지 대기 중...";
                 tag.style.color = "#94a3b8";
@@ -217,71 +421,94 @@ HTML_DASHBOARD = """
             document.getElementById('val-can').innerText = canP + "%";
         }
 
-        function switchMode(mode) {
-            currentMode = mode;
-            document.getElementById('btn-mode-real').classList.toggle('active', mode === 'real');
-            document.getElementById('btn-mode-sim').classList.toggle('active', mode === 'sim');
-            document.getElementById('panel-real').classList.toggle('active', mode === 'real');
-            document.getElementById('panel-sim').classList.toggle('active', mode === 'sim');
+        function playBeepSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.value = 880;
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15);
+                setTimeout(() => osc.stop(), 150);
+            } catch(e) {}
         }
 
         function drive(dir) {
-            if (currentMode === 'sim') { moveSimRobot(dir); return; }
-            fetch('/api/drive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) });
+            triggerHaptic();
+            moveSimRobot(dir);
+            fetch('/api/drive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) }).catch(() => {});
         }
 
         function controlGripper(action) {
-            if (currentMode === 'sim') { simGripperState = action; drawSim(); alert("시뮬레이터 집게: " + (action === 'open' ? "열림" : "닫힘")); return; }
-            fetch('/api/gripper', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: action }) }).then(r=>r.json()).then(d=>alert(d.message));
+            triggerHaptic();
+            simGripperState = action;
+            drawSim();
+            playBeepSound();
+            fetch('/api/gripper', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: action }) }).catch(() => {});
         }
 
         function triggerSort(category) {
+            triggerHaptic();
             if (category === '종이') updateAIHUD('종이', 0.98, 98, 2, 0, 0);
             else if (category === '종이팩') updateAIHUD('종이팩', 0.95, 2, 95, 3, 0);
             else if (category === '플라스틱/페트병') updateAIHUD('플라스틱/페트병', 0.97, 1, 2, 97, 0);
             else if (category === '캔') updateAIHUD('캔', 0.96, 0, 1, 3, 96);
 
-            if (currentMode === 'sim') { runSimSortingSequence(category); return; }
-            fetch('/api/sort', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: category }) }).then(r=>r.json()).then(d=>alert(d.message));
+            runSimSortingSequence(category);
+            fetch('/api/sort', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: category }) }).catch(() => {});
         }
 
-        /* 2D Canvas Simulator */
+        /* 🎮 오프라인 2D 캔버스 시뮬레이터 */
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas ? canvas.getContext('2d') : null;
-        let simRobot = { x: 200, y: 130, angle: 0, originX: 200, originY: 130 };
+        
+        let simRobot = { x: 200, y: 125, angle: 0, originX: 200, originY: 125 };
         let simGripperState = 'open';
         let simRunning = false;
 
         const simBins = {
-            '종이': { x: 340, y: 50, color: '#854d0e', label: '1번 종이' },
-            '종이팩': { x: 340, y: 210, color: '#0891b2', label: '2번 종이팩' },
-            '플라스틱/페트병': { x: 60, y: 50, color: '#1e40af', label: '3번 페트병' },
-            '캔': { x: 60, y: 210, color: '#15803d', label: '4번 캔' }
+            '종이': { x: 340, y: 45, color: '#92400e', label: '1번 종이' },
+            '종이팩': { x: 340, y: 205, color: '#0e7490', label: '2번 종이팩' },
+            '플라스틱/페트병': { x: 60, y: 45, color: '#1e40af', label: '3번 페트병' },
+            '캔': { x: 60, y: 205, color: '#166534', label: '4번 캔' }
         };
 
         function drawSim() {
             if (!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
             ctx.strokeStyle = '#1e293b';
             for(let x=0; x<canvas.width; x+=40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
             for(let y=0; y<canvas.height; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
 
-            ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(simRobot.originX, simRobot.originY, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#00f2fe';
+            ctx.beginPath(); ctx.arc(simRobot.originX, simRobot.originY, 6, 0, Math.PI*2); ctx.fill();
             ctx.font = '10px sans-serif'; ctx.fillText('시작점(0,0)', simRobot.originX-25, simRobot.originY+18);
 
             for(let cat in simBins) {
                 let bin = simBins[cat];
-                ctx.fillStyle = bin.color; ctx.fillRect(bin.x-30, bin.y-20, 60, 40);
+                ctx.fillStyle = bin.color;
+                ctx.fillRect(bin.x-30, bin.y-20, 60, 40);
                 ctx.strokeStyle = '#ffffff'; ctx.strokeRect(bin.x-30, bin.y-20, 60, 40);
                 ctx.fillStyle = '#ffffff'; ctx.font = '11px sans-serif'; ctx.fillText(bin.label, bin.x-24, bin.y+4);
             }
 
-            ctx.save(); ctx.translate(simRobot.x, simRobot.y); ctx.rotate(simRobot.angle);
-            ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.stroke();
-            ctx.strokeStyle = simGripperState === 'open' ? '#10b981' : '#ef4444'; ctx.lineWidth = 3;
+            ctx.save();
+            ctx.translate(simRobot.x, simRobot.y);
+            ctx.rotate(simRobot.angle);
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#ffffff'; ctx.stroke();
+
+            ctx.strokeStyle = simGripperState === 'open' ? '#10b981' : '#ef4444';
+            ctx.lineWidth = 3;
             let offset = simGripperState === 'open' ? 12 : 4;
             ctx.beginPath(); ctx.moveTo(14, -offset); ctx.lineTo(24, -offset/2); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(14, offset); ctx.lineTo(24, offset/2); ctx.stroke();
+            ctx.lineWidth = 1;
+
             ctx.restore();
         }
 
@@ -300,45 +527,70 @@ HTML_DASHBOARD = """
             let log = document.getElementById('simLog');
             let targetBin = simBins[category];
 
-            log.innerText = "🤖 ['" + category + "'] 6프레임 분석 완료! 집게 열고 4초 거치 대기...";
-            simGripperState = 'open'; drawSim();
+            playBeepSound();
+            log.innerText = "🤖 ['" + category + "'] 6프레임 감지 완료! 삐! 집게 열고 4초 거치 대기...";
+            simGripperState = 'open';
+            drawSim();
 
-            setTimeout(() => {
-                log.innerText = "🦾 4초 대기 완료! 집게 닫기 (CLOSE) 쓰레기 포획!";
-                simGripperState = 'close'; drawSim();
+            let waitSec = 4.0;
+            let timerInterval = setInterval(() => {
+                waitSec -= 0.5;
+                if (waitSec > 0) {
+                    log.innerText = "🦾 ['" + category + "'] 집게 열림(OPEN)! 쓰레기를 놓아주세요 (" + waitSec.toFixed(1) + "초 남음)";
+                } else {
+                    clearInterval(timerInterval);
+                    playBeepSound();
+                    log.innerText = "🦾 4초 대기 완료! 삐! 집게 닫기 (CLOSE) 쓰레기 포획!";
+                    simGripperState = 'close';
+                    drawSim();
 
-                setTimeout(() => {
-                    log.innerText = "🚚 수거함 지정 경로 자율주행 중...";
-                    let steps = 30, count = 0;
-                    let dx = (targetBin.x - simRobot.x) / steps, dy = (targetBin.y - simRobot.y) / steps;
+                    setTimeout(() => {
+                        log.innerText = "🚚 수거함 지정 경로 자율주행 중...";
+                        let steps = 30;
+                        let count = 0;
+                        let dx = (targetBin.x - simRobot.x) / steps;
+                        let dy = (targetBin.y - simRobot.y) / steps;
 
-                    let interval = setInterval(() => {
-                        simRobot.x += dx; simRobot.y += dy; drawSim(); count++;
-                        if (count >= steps) {
-                            clearInterval(interval);
-                            log.innerText = "🎉 수거함 도착! 집게 열기 (OPEN) 쓰레기 투입!";
-                            simGripperState = 'open'; drawSim();
+                        let interval = setInterval(() => {
+                            simRobot.x += dx;
+                            simRobot.y += dy;
+                            drawSim();
+                            count++;
+                            if (count >= steps) {
+                                clearInterval(interval);
+                                playBeepSound();
+                                log.innerText = "🎉 수거함 도착! 집게 열기 (OPEN) 쓰레기 투입!";
+                                simGripperState = 'open';
+                                drawSim();
 
-                            setTimeout(() => {
-                                log.innerText = "↩️ 오차 0.00cm 1:1 대칭 정밀 역주행 복귀 중...";
-                                let rCount = 0;
-                                let rInterval = setInterval(() => {
-                                    simRobot.x -= dx; simRobot.y -= dy; drawSim(); rCount++;
-                                    if (rCount >= steps) {
-                                        clearInterval(rInterval);
-                                        simRobot.x = simRobot.originX; simRobot.y = simRobot.originY;
-                                        log.innerText = "✅ 시작 위치 복귀 완료! (오차: 0.0000 cm PASS)";
-                                        simRunning = false; drawSim();
-                                    }
-                                }, 50);
-                            }, 1000);
-                        }
-                    }, 50);
-                }, 1200);
-            }, 2000);
+                                setTimeout(() => {
+                                    log.innerText = "↩️ 오차 0.00cm 1:1 대칭 정밀 역주행 복귀 중...";
+                                    let rCount = 0;
+                                    let rInterval = setInterval(() => {
+                                        simRobot.x -= dx;
+                                        simRobot.y -= dy;
+                                        drawSim();
+                                        rCount++;
+                                        if (rCount >= steps) {
+                                            clearInterval(rInterval);
+                                            simRobot.x = simRobot.originX;
+                                            simRobot.y = simRobot.originY;
+                                            log.innerText = "✅ 시작 위치 복귀 완료! (오차: 0.0000 cm PASS)";
+                                            simRunning = false;
+                                            drawSim();
+                                        }
+                                    }, 50);
+                                }, 1000);
+                            }
+                        }, 50);
+                    }, 1000);
+                }
+            }, 500);
         }
 
-        window.onload = function() { drawSim(); };
+        window.onload = function() {
+            drawSim();
+        };
     </script>
 </body>
 </html>
@@ -396,7 +648,7 @@ def overlay_qr_code_on_frame(frame: np.ndarray, server_url: str) -> np.ndarray:
 
 @app.route('/')
 def index():
-    return render_template_string(HTML_DASHBOARD)
+    return render_template_string(HTML_OFFLINE_DASHBOARD)
 
 def generate_mjpeg_stream():
     global latest_frame
