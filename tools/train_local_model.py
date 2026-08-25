@@ -1,9 +1,7 @@
 """
- 햄스터 로봇 AI 모델 추가 학습 (Fine-Tuning / Retraining) 자동화 스크립트
-======================================================================
+ 햄스터 로봇 AI 모델 2,000+ 대용량 데이터셋 파이프라인 추가 학습 (Fine-Tuning) 도구
+===================================================================================
 실행 방법:
-    python tools/train_local_model.py
-    또는
     uv run python tools/train_local_model.py
 """
 
@@ -33,7 +31,7 @@ LABELS_PATH = MODELS_DIR / "labels.txt"
 
 def train_local_model():
     print("\n" + "=" * 70)
-    print("  🧠 Keras AI 모델 추가 학습(Fine-Tuning)을 즉시 시작합니다...")
+    print("  🧠 Keras 2 & 3 상호 호환 대용량 AI 추가 학습(Fine-Tuning)을 시작합니다...")
     print("=" * 70)
 
     # 1. 데이터셋 폴더 수집
@@ -75,9 +73,9 @@ def train_local_model():
     y = np.array(y_labels, dtype=np.int32)
     y_cat = keras.utils.to_categorical(y, num_classes=len(labels))
 
-    print(f"\n  총 {len(X)}개 이미지 데이터셋 파티셔닝 완료 (Shape: {X.shape})")
+    print(f"\n  총 {len(X)}개 대용량 이미지 데이터셋 파티셔닝 완료 (Shape: {X.shape})")
 
-    # 2. 딥러닝 백본 신경망 구축 및 파인튜닝
+    # 2. 딥러닝 백본 신경망 구축
     print("  🧠 MobileNetV2 백본 신경망 구축 및 파인튜닝 로딩...")
     base_model = tf.keras.applications.MobileNetV2(
         input_shape=(img_size, img_size, 3),
@@ -86,7 +84,7 @@ def train_local_model():
     )
     base_model.trainable = False  # 가중치 동결
 
-    inputs = keras.Input(shape=(img_size, img_size, 3))
+    inputs = layers.Input(shape=(img_size, img_size, 3), dtype='float32')
     x = base_model(inputs, training=False)
     x = layers.GlobalAveragePooling2D()(x)
     x = layers.Dropout(0.2)(x)
@@ -100,10 +98,11 @@ def train_local_model():
     )
 
     print("  🚀 추가 학습(Training Epochs 10회)을 진행합니다...")
+    batch_sz = 16 if len(X) > 500 else 8
     history = model.fit(
         X, y_cat,
         epochs=10,
-        batch_size=8,
+        batch_size=batch_sz,
         verbose=1,
         shuffle=True
     )

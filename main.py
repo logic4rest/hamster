@@ -243,22 +243,45 @@ def load_labels(path: str) -> dict[int, str]:
 
 
 def load_model(path: str):
+    import tensorflow as tf
+    from tensorflow import keras
+
+    # 1. Teachable Machine DepthwiseConv2D (groups) 호환성 패치
+    try:
+        from tensorflow.keras.layers import DepthwiseConv2D
+        _orig_dw_init = DepthwiseConv2D.__init__
+        def _patched_dw_init(self, *args, **kwargs):
+            kwargs.pop("groups", None)
+            _orig_dw_init(self, *args, **kwargs)
+        DepthwiseConv2D.__init__ = _patched_dw_init
+    except Exception:
+        pass
+
+    # 2. Keras 3 vs Keras 2 InputLayer (batch_shape) 호환성 패치
+    try:
+        from tensorflow.keras.layers import InputLayer
+        _orig_input_init = InputLayer.__init__
+        def _patched_input_init(self, *args, **kwargs):
+            if "batch_shape" in kwargs and "batch_input_shape" not in kwargs:
+                kwargs["batch_input_shape"] = kwargs.pop("batch_shape")
+            else:
+                kwargs.pop("batch_shape", None)
+            _orig_input_init(self, *args, **kwargs)
+        InputLayer.__init__ = _patched_input_init
+    except Exception:
+        pass
+
+    # 3. Keras 모델 로드
+    try:
+        return keras.models.load_model(str(path), compile=False)
+    except Exception:
+        pass
+
     try:
         import tf_keras
         return tf_keras.models.load_model(str(path), compile=False)
-    except ImportError:
-        pass
-
-    from tensorflow import keras
-
-    _orig_init = keras.layers.DepthwiseConv2D.__init__
-
-    def _patched_init(self, *args, **kwargs):
-        kwargs.pop("groups", None)
-        _orig_init(self, *args, **kwargs)
-
-    keras.layers.DepthwiseConv2D.__init__ = _patched_init
-    return keras.models.load_model(str(path), compile=False)
+    except Exception as e:
+        return tf.keras.models.load_model(str(path), compile=False)
 
 
 def preprocess(frame: np.ndarray) -> np.ndarray:
