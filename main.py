@@ -655,9 +655,6 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
     status_hud.update_status(motion=f"[{mapped_category}] 수거함 도착! 집게 열기 (RELEASE)")
     update_screen("수거함 도착! 집게 열기 투입 완료 (OPEN)", 0.5)
 
-    # 💡 [유저 요구사항] 쓰레기를 가져다 놓으면 슈퍼 마리오 테마곡 연주 + 엉덩이 흔들기 + 집게 박수 댄스!
-    play_mario_celebration(hamster, update_screen)
-
     # 6. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
     if named_route:
         print("  ↩️ 원본 대칭 역주행 궤적으로 시작 위치로 오차 0.00cm 복귀합니다...")
