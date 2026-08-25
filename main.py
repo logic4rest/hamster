@@ -62,8 +62,8 @@ STATS_PATH   = PROJECT_ROOT / "stats.json"
 
 CONFIDENCE_THRESHOLD       = 0.8   # 이 값 미만이면 폐기/대기 (없음 처리)
 REQUIRED_FRAMES            = 6     # 재활용품 6프레임 연속 분석 확정 조건
-COUNTDOWN_SEC              = 2     # 시작 전 카운트다운 초
-WAIT_PLACEMENT_SEC         = 4.0   # 쓰레기 4초 집게열림 대기 시간
+COUNTDOWN_SEC              = 1     # 시작 전 카운트다운 초 (빠른 스타트)
+WAIT_PLACEMENT_SEC         = 2.0   # 쓰레기 2초 집게열림 대기 시간 (빠른 집게 닫기)
 IMG_SIZE                   = 224   # 티처블 머신 기본 입력 크기
 
 # 글로벌 스마트폰 웹 명령 큐
@@ -453,11 +453,11 @@ def record_single_slot(hamster, slot_choice: str):
 
             new_left, new_right = 0, 0
             if keyboard.is_pressed("shift"):
-                speed = 50
+                speed = 65
             elif keyboard.is_pressed("ctrl"):
-                speed = 25
-            else:
                 speed = 35
+            else:
+                speed = 50
 
             up    = keyboard.is_pressed("up")    or keyboard.is_pressed("w")
             down  = keyboard.is_pressed("down")  or keyboard.is_pressed("s")
