@@ -493,45 +493,95 @@ def record_single_slot(hamster, slot_choice: str):
     status_hud.update_status(led="OFF", motion="대기 중 (Standby)")
 
 
-def initial_arrow_teach_session(hamster):
-    """프로그램 시작 시 쓰레기 4종 위치 학습 세션 (0번 입력 시 웹캠 시작)"""
-    control_physical_gripper(hamster, "open")
+def play_mario_celebration(hamster, update_screen_func=None):
+    """쓰레기 투입 성공 시 마리오 테마곡 연주 + 부드러운 엉덩이 흔들기 댄스 + 집게 박수 세레머니 (전류 급증 방지 100% 안전 처리)"""
+    print("\n" + "=" * 65)
+    print("  🍄 [배출 성공!] 슈퍼 마리오 테마곡 연주 + 엉덩이 흔들기 + 집게 댄스! 🍄")
+    print("=" * 65)
 
-    while True:
-        print("\n" + "=" * 65)
-        print("  🎮 [1단계] 쓰레기 4종 위치 번호별 지정 저장 모드 (집게 열림 OPEN 대기)")
-        print("  -------------------------------------------------------------")
-        print("  저장하고자 하는 수거함 번호를 선택해 주세요:")
-        print("    [1] 📄 종이")
-        print("    [2] 🩵 종이팩")
-        print("    [3] 🥤 패트병(플라스틱)")
-        print("    [4] 🥫 캔")
-        print("    [0] 🚀 위치 저장 완료 및 웹캠 카메라 AI 감지 시작")
-        print("=" * 65)
+    try:
+        if hasattr(hamster, "tempo"):
+            hamster.tempo(140)
+        bpm = 140
 
-        flush_console_input()
-        choice = input("\n👉 선택할 번호를 입력 후 Enter를 누르세요 (1, 2, 3, 4 지정 선택 또는 0 입력 후 Enter) > ").strip()
+        mario_melody = [
+            ("E5", 0.25), ("E5", 0.25), ("off", 0.25), ("E5", 0.25), ("off", 0.25), ("C5", 0.25), ("E5", 0.25), ("off", 0.25),
+            ("G5", 0.5), ("off", 0.5), ("G4", 0.5), ("off", 0.5),
+            ("C5", 0.5), ("off", 0.25), ("G4", 0.5), ("off", 0.25), ("E4", 0.5), ("off", 0.25),
+            ("A4", 0.25), ("B4", 0.25), ("A#4", 0.25), ("A4", 0.25),
+            ("G4", 0.25), ("E5", 0.25), ("G5", 0.25), ("A5", 0.5), ("F5", 0.25), ("G5", 0.25),
+            ("off", 0.25), ("E5", 0.5), ("C5", 0.25), ("D5", 0.25), ("B4", 0.5)
+        ]
 
-        if choice == "0":
-            print("\n  [완료] 수거함 위치 설정을 마치고 웹캠 카메라 감지를 시작합니다!")
-            print("  🦾 햄스터봇 집게 초기화 점검: 오므렸다 폈다 (닫기 ➔ 열기 ➔ 닫기 ➔ 열기 대기)...")
-            hamster.beep()
-            control_physical_gripper(hamster, "close")
-            time.sleep(0.5)
+        led_colors = ["red", "blue", "green", "yellow", "cyan", "magenta", "white"]
+        wiggle_left = True
+        gripper_open = True
+        accumulated_beats = 0.0
+        last_toggle_beat = 0.0
+
+        for note_name, beats in mario_melody:
+            timeout = beats * 60.0 * 1000.0 / bpm
+            tail = 80.0 if timeout > 80 else 0.0
+            play_time = timeout - tail
+
+            accumulated_beats += beats
+            if accumulated_beats - last_toggle_beat >= 0.75:
+                gripper_open = not gripper_open
+                last_toggle_beat = accumulated_beats
+
+            if note_name == "off":
+                try:
+                    hamster.note("off")
+                    hamster.stop()
+                    hamster.leds("off", "off")
+                except Exception:
+                    pass
+            else:
+                try:
+                    hamster.note(note_name)
+
+                    # 💡 부드러운 속도(35)로 좌우 엉덩이 흔들기 (모터 과전류 블루투스 다운 원천 방지)
+                    if wiggle_left:
+                        hamster.wheels(-35, 35)
+                    else:
+                        hamster.wheels(35, -35)
+                    wiggle_left = not wiggle_left
+
+                    if gripper_open:
+                        control_physical_gripper(hamster, "open")
+                    else:
+                        control_physical_gripper(hamster, "close")
+
+                    c1 = led_colors[int(time.time() * 10) % len(led_colors)]
+                    c2 = led_colors[(int(time.time() * 10) + 2) % len(led_colors)]
+                    hamster.leds(c1, c2)
+                except Exception:
+                    pass
+
+            if update_screen_func:
+                update_screen_func(f"🍄 [마리오 댄스 세레머니!] 🎵 {note_name} | 엉덩이 흔들기 + 집게 박수!", play_time / 1000.0)
+            else:
+                time.sleep(play_time / 1000.0)
+
+            try:
+                hamster.note("off")
+                hamster.stop()
+            except Exception:
+                pass
+            if tail > 0:
+                time.sleep(tail / 1000.0)
+
+    except Exception as e:
+        print(f"  ⚠️ 세레머니 연주 중 안전 예외 처리: {e}")
+    finally:
+        try:
+            hamster.note("off")
+            hamster.stop()
+            hamster.leds("off", "off")
             control_physical_gripper(hamster, "open")
-            time.sleep(0.5)
-            control_physical_gripper(hamster, "close")
-            time.sleep(0.5)
-            control_physical_gripper(hamster, "open")
-            time.sleep(0.5)
-            print("  ✅ 햄스터봇 집게 열림(OPEN) 수거 대기 완료!\n")
-            break
-
-        if choice in ["1", "2", "3", "4"]:
-            record_single_slot(hamster, choice)
-            flush_console_input()
-        else:
-            print("  ⚠️ 수거함 위치를 새로 지정하려면 [1, 2, 3, 4] 중 번호를 선택하고, 설정을 마치고 웹캠을 켜시려면 '0'을 입력해 주세요.")
+        except Exception:
+            pass
+        print("  🎉 마리오 연주 & 엉덩이 흔들기 & 집게 댄스 안전 완료!\n")
 
 
 def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: float, stats: dict):
@@ -542,14 +592,17 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
     def update_screen(status_msg: str, duration_sec: float):
         start = time.time()
         while time.time() - start < duration_sec:
-            ret, frame = cap.read()
-            if ret and frame is not None:
-                frame = cv2.flip(frame, 1)
-                frame = draw_hud_and_bbox(frame, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats, status_msg)
-                update_web_frame(frame)
-                if qr_server._qr_url:
-                    frame = overlay_qr_code_on_frame(frame, qr_server._qr_url)
-                cv2.imshow("Waste Sorting Hamster", frame)
+            try:
+                ret, frame = cap.read()
+                if ret and frame is not None:
+                    frame = cv2.flip(frame, 1)
+                    frame = draw_hud_and_bbox(frame, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats, status_msg)
+                    update_web_frame(frame)
+                    if qr_server._qr_url:
+                        frame = overlay_qr_code_on_frame(frame, qr_server._qr_url)
+                    cv2.imshow("Waste Sorting Hamster", frame)
+            except Exception:
+                pass
             if cv2.waitKey(10) & 0xFF == 27:
                 break
 
