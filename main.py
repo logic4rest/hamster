@@ -60,9 +60,9 @@ TODAY_CAPTURES_DIR.mkdir(parents=True, exist_ok=True)
 
 STATS_PATH   = PROJECT_ROOT / "stats.json"
 
-CONFIDENCE_THRESHOLD       = 0.65  # 실전 실물 감지 최적 신뢰도 (65% 이상 인식)
+CONFIDENCE_THRESHOLD       = 0.8   # 신뢰도 기준 80% 이상 (80% 미만은 대기/없음 처리)
 REQUIRED_FRAMES            = 6     # 재활용품 6프레임 연속 분석 확정 조건
-COUNTDOWN_SEC              = 1     # 시작 전 카운트다운 초 (빠른 스타트)
+COUNTDOWN_SEC              = 3     # 웹카메라 켜진 후 3초 준비/안정화 카운트다운 (3초 후 인식 시작)
 WAIT_PLACEMENT_SEC         = 5.0   # 쓰레기 5초 집게열림 거치 대기 시간
 IMG_SIZE                   = 224   # 티처블 머신 기본 입력 크기
 
@@ -708,6 +708,7 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
 
 
 def countdown(cap: cv2.VideoCapture, seconds: int, web_url: str = ""):
+    print(f"[INFO] 웹카메라를 켜고 {seconds}초간 센서/노출 안정화 시간을 가집니다...")
     for i in range(seconds, 0, -1):
         deadline = time.time() + 1.0
         while time.time() < deadline:
@@ -715,11 +716,19 @@ def countdown(cap: cv2.VideoCapture, seconds: int, web_url: str = ""):
             if not ret or frame is None:
                 continue
             frame = cv2.flip(frame, 1)
+
+            # 상단 안내 바
+            cv2.rectangle(frame, (0, 0), (frame.shape[1], 50), (0, 0, 0), -1)
             cv2.putText(
-                frame, str(i),
-                (frame.shape[1] // 2 - 40, frame.shape[0] // 2 + 40),
-                cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 0), 6, cv2.LINE_AA,
+                frame, f"[CAMERA INITIALIZATION] 3-sec Warmup ({i}s)",
+                (20, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2, cv2.LINE_AA,
             )
+
+            # 중앙 거대 카운트다운 숫자
+            cx, cy = frame.shape[1] // 2, frame.shape[0] // 2
+            cv2.putText(frame, str(i), (cx - 30, cy + 40), cv2.FONT_HERSHEY_SIMPLEX, 4.5, (0, 0, 0), 12, cv2.LINE_AA)
+            cv2.putText(frame, str(i), (cx - 30, cy + 40), cv2.FONT_HERSHEY_SIMPLEX, 4.5, (0, 255, 0), 6, cv2.LINE_AA)
+
             update_web_frame(frame)
             if web_url:
                 frame = overlay_qr_code_on_frame(frame, web_url)
