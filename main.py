@@ -535,18 +535,8 @@ def initial_arrow_teach_session(hamster):
 
 
 def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: float, stats: dict):
-    """
-    💡 [유저 요구사항 100% 완벽 반영]
-    1. 연속 6프레임 분석 확정 ➔ 2. 집게 열고 4초간 제자리 대기 ➔ 3. 4초 후 집게 닫기 ➔ 4. 비로소 수거함 주행 시작 ➔ 5. 집게 열기 ➔ 6. 0.00cm 대칭 복귀
-    """
-    waypoint_manager.log_event("SORTING_START", f"6프레임분석 4초대기 수거 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
-
-    slot_map = {
-        "종이": "1",
-        "종이팩": "2",
-        "플라스틱/페트병": "3",
-        "캔": "4"
-    }
+    """6프레임 확정 ➔ 제자리 정지 ➔ 집게열기 ➔ 4초간 쓰레기놓기 대기 ➔ 집게닫기 ➔ 지정위치이동 ➔ 투입 ➔ 마리오 댄스 ➔ 오차 0.00cm 정밀 역주행 복귀"""
+    slot_map = {"종이": "1", "종이팩": "2", "플라스틱/페트병": "3", "캔": "4"}
     slot_id = slot_map.get(mapped_category, "3" if "플라스틱" in mapped_category else "1")
 
     def update_screen(status_msg: str, duration_sec: float):
@@ -610,7 +600,10 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
     print(f"  🎉 [{slot_id}번 {mapped_category} 수거함 도착] 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입 완료!")
     control_physical_gripper(hamster, "open")
     status_hud.update_status(motion=f"[{mapped_category}] 수거함 도착! 집게 열기 (RELEASE)")
-    update_screen("수거함 도착! 집게 열기 투입 완료 (OPEN)", 0.8)
+    update_screen("수거함 도착! 집게 열기 투입 완료 (OPEN)", 0.5)
+
+    # 💡 [유저 요구사항] 쓰레기를 가져다 놓으면 슈퍼 마리오 테마곡 연주 + 엉덩이 흔들기 + 집게 박수 댄스!
+    play_mario_celebration(hamster, update_screen)
 
     # 6. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
     if named_route:
