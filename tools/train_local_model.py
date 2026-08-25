@@ -1,5 +1,5 @@
 """
-햄스터 로봇 AI 모델 로컬 데이터셋 추가 학습 & 파이인튜닝 도구 (v1.0)
+ 햄스터 로봇 AI 모델 추가 학습 (Fine-Tuning / Retraining) 자동화 스크립트
 ======================================================================
 실행 방법:
     python tools/train_local_model.py
@@ -11,6 +11,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from PIL import Image
 
 # 윈도우 콘솔 CP949 UTF-8 인코딩 안전 처리
 if hasattr(sys.stdout, "reconfigure"):
@@ -20,6 +21,9 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -27,26 +31,95 @@ MODELS_DIR = PROJECT_ROOT / "models"
 MODEL_PATH = MODELS_DIR / "keras_model.h5"
 LABELS_PATH = MODELS_DIR / "labels.txt"
 
-def print_training_guide():
+def train_local_model():
     print("\n" + "=" * 70)
-    print("  🧠 햄스터 로봇 AI 모델 추가 학습 가이드 (Teachable Machine & Local)")
+    print("  🧠 Keras AI 모델 추가 학습(Fine-Tuning)을 즉시 시작합니다...")
     print("=" * 70)
-    print("  [방법 1: 구글 티처블 머신으로 1분 만에 추가 학습하기 (권장)]")
-    print("   1. 웹 브라우저에서 https://teachablemachine.withgoogle.com 에 접속합니다.")
-    print("   2. [이미지 프로젝트] ➔ [표준 이미지 모델]을 클릭합니다.")
-    print("   3. 원하는 클래스(예: 캔, 비닐, 플라스틱, 종이팩, 종이 등)를 추가하고 웹캠이나 이미지를 업로드합니다.")
-    print("   4. [모델 학습시키기 (Train Model)] 버튼을 누릅니다.")
-    print("   5. 학습 완료 후 [모델 내보내기 (Export Model)] ➔ [Keras] 탭 ➔ [모델 다운로드]를 클릭합니다.")
-    print("   6. 다운로드된 'keras_model.h5' 와 'labels.txt' 파일 2개를")
-    print("      'c:\\Users\\User\\Desktop\\hamster\\models\\' 폴더에 덮어씌우면 끝!\n")
 
-    print("  [방법 2: 'data/' 폴더의 데이터로 자동 학습하기]")
-    print(f"   현재 'data/' 폴더 위치: {DATA_DIR}")
-    
-    if DATA_DIR.exists():
-        subdirs = [d.name for d in DATA_DIR.iterdir() if d.is_dir()]
-        print(f"   수집된 이미지 범주 ({len(subdirs)}개): {', '.join(subdirs)}")
+    # 1. 데이터셋 폴더 수집
+    class_folders = [d for d in DATA_DIR.iterdir() if d.is_dir()]
+    if not class_folders:
+        print("  ⚠️ 'data/' 폴더에 학습할 이미지 범주 폴더가 없습니다.")
+        return
+
+    labels = [d.name for d in class_folders]
+    print(f"  📌 학습 대상 범주 ({len(labels)}개): {labels}")
+
+    images = []
+    y_labels = []
+
+    img_size = 224
+
+    for class_idx, folder in enumerate(class_folders):
+        img_files = list(folder.glob("*.png")) + list(folder.glob("*.jpg")) + list(folder.glob("*.jpeg"))
+        loaded_count = 0
+        for img_path in img_files:
+            try:
+                # PIL 로더로 한글 경로 안전 로드
+                with Image.open(str(img_path)) as pil_img:
+                    pil_img = pil_img.convert('RGB').resize((img_size, img_size))
+                    arr = np.array(pil_img, dtype=np.float32)
+                    arr = (arr / 127.5) - 1.0  # Teachable Machine 전처리 규격
+                    images.append(arr)
+                    y_labels.append(class_idx)
+                    loaded_count += 1
+            except Exception as e:
+                pass
+        print(f"   - '{folder.name}': {loaded_count}개 이미지 성공적 로드!")
+
+    if len(images) == 0:
+        print("  ⚠️ 로드된 학습 데이터가 없습니다.")
+        return
+
+    X = np.array(images, dtype=np.float32)
+    y = np.array(y_labels, dtype=np.int32)
+    y_cat = keras.utils.to_categorical(y, num_classes=len(labels))
+
+    print(f"\n  총 {len(X)}개 이미지 데이터셋 파티셔닝 완료 (Shape: {X.shape})")
+
+    # 2. 딥러닝 백본 신경망 구축 및 파인튜닝
+    print("  🧠 MobileNetV2 백본 신경망 구축 및 파인튜닝 로딩...")
+    base_model = tf.keras.applications.MobileNetV2(
+        input_shape=(img_size, img_size, 3),
+        include_top=False,
+        weights='imagenet'
+    )
+    base_model.trainable = False  # 가중치 동결
+
+    inputs = keras.Input(shape=(img_size, img_size, 3))
+    x = base_model(inputs, training=False)
+    x = layers.GlobalAveragePooling2D()(x)
+    x = layers.Dropout(0.2)(x)
+    outputs = layers.Dense(len(labels), activation='softmax')(x)
+    model = keras.Model(inputs, outputs)
+
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=0.001),
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    print("  🚀 추가 학습(Training Epochs 10회)을 진행합니다...")
+    history = model.fit(
+        X, y_cat,
+        epochs=10,
+        batch_size=8,
+        verbose=1,
+        shuffle=True
+    )
+
+    # 3. 모델 및 라벨 저장
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    model.save(str(MODEL_PATH))
+
+    with open(str(LABELS_PATH), "w", encoding="utf-8") as f:
+        for idx, name in enumerate(labels):
+            f.write(f"{idx} {name}\n")
+
+    print("\n" + "=" * 70)
+    print(f"  🎉 추가 학습 완료! 최신 AI 모델 저장 위치: {MODEL_PATH}")
+    print(f"  📋 최신 클래스 레이블 저장 위치: {LABELS_PATH}")
     print("=" * 70 + "\n")
 
 if __name__ == "__main__":
-    print_training_guide()
+    train_local_model()
