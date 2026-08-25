@@ -624,8 +624,6 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
                     frame = cv2.flip(frame, 1)
                     frame = draw_hud_and_bbox(frame, f"★ 확정: {mapped_category}", conf, REQUIRED_FRAMES, REQUIRED_FRAMES, stats, status_msg)
                     update_web_frame(frame)
-                    if qr_server._qr_url:
-                        frame = overlay_qr_code_on_frame(frame, qr_server._qr_url)
                     cv2.imshow("Waste Sorting Hamster", frame)
             except Exception:
                 pass
@@ -928,10 +926,9 @@ def main():
             # 웹 스트리밍으로 최신 원본 오버레이 프레임 전달
             update_web_frame(frame)
 
-            # 모니터 화면에는 우측 하단 QR 코드를 합성하여 출력
+            # 모니터 카메라 화면 깔끔 출력 (QR 코드 오버레이 제거 완료)
             if frame is not None:
-                display_frame = overlay_qr_code_on_frame(frame, web_url)
-                cv2.imshow("Waste Sorting Hamster", display_frame)
+                cv2.imshow("Waste Sorting Hamster", frame)
 
             if cv2.waitKey(1) & 0xFF == 27:
                 break
