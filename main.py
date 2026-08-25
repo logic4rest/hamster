@@ -651,12 +651,12 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
         status_hud.update_status(motion=f"[{mapped_category}] 집게 열고 4초 대기 중 ({rem_sec:.1f}s)")
         update_screen(f"🦾 [{mapped_category}] 집게 열림(OPEN)! 쓰레기를 놓아주세요 ({rem_sec:.1f}초 남음)", 0.1)
 
-    # 3. 💡 4초 대기가 끝난 후 비로소 집게 닫기 (CLOSE) 쓰레기 포획!
-    print(f"  🦾 [4초 대기 완료!] 집게 닫기 (CLOSE) 쓰레기 포획 완료!")
+    # 3. 💡 5초 대기가 끝난 후에도 집게를 오므리지 않고 열린 상태(OPEN) 유지!
+    print(f"  🦾 [5초 대기 완료!] 집게를 오므리지 않고 열린 상태(OPEN) 유지하며 주행합니다!")
     hamster.beep()
-    control_physical_gripper(hamster, "close")
-    status_hud.update_status(motion="4초 대기 완료! 집게 닫기 (CLOSE)")
-    update_screen("4초 대기 완료! 집게 닫기 & 쓰레기 포획 (CLOSE)", 0.6)
+    control_physical_gripper(hamster, "open")
+    status_hud.update_status(motion="5초 대기 완료! 집게 열림 유지 (OPEN)")
+    update_screen("5초 대기 완료! 집게 열림 상태 유지 (OPEN)", 0.6)
 
     # 4. 💡 집게를 닫은 후 비로소 지정된 수거함 슬롯(1~4번)으로 주행 시작!
     named_route = waypoint_manager.get_waypoint(mapped_category)
