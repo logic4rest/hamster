@@ -66,8 +66,11 @@ class WaypointManager:
             except Exception as e:
                 self.log_event("ERROR", f"마스터 북마크 로드 실패: {e}")
 
-        # 2. routes 디렉터리 및 하위 폴더의 모든 개별 *.json 파일 자동 검색 및 최신 데이터로 병합
-        json_files = sorted(ROUTES_DIR.glob("**/*.json"), key=lambda p: p.stat().st_mtime)
+        # 2. 오늘 날짜 디렉터리 (예: routes/20260825) 우선 로드
+        today_dir = ROUTES_DIR / time.strftime("%Y%m%d")
+        target_dir = today_dir if today_dir.exists() else ROUTES_DIR
+
+        json_files = sorted(target_dir.glob("*.json"), key=lambda p: p.stat().st_mtime)
         for jpath in json_files:
             if jpath.name == "waypoints.json":
                 continue
@@ -79,56 +82,14 @@ class WaypointManager:
                     item_name = content.get("name", "").strip()
                     item_slot = content.get("slot", "").strip()
 
-                    # 예: '종이', '종이팩', '플라스틱/페트병', '캔'
                     if item_name:
                         waypoints_data[item_name] = content
                         if item_slot:
                             waypoints_data[f"{item_slot}_{item_name}"] = content
-
-                    stem_name = jpath.stem.replace("1_", "").replace("2_", "").replace("3_", "").replace("4_", "").replace("_", "/")
-                    if stem_name:
-                        waypoints_data[stem_name] = content
-                elif isinstance(content, list):  # paper_route.json 스타일
-                    waypoints_data["종이"] = {
-                        "slot": "1",
-                        "name": "종이",
-                        "date": time.strftime("%Y-%m-%d"),
-                        "trajectory": content
-                    }
-                    waypoints_data["1_종이"] = waypoints_data["종이"]
             except Exception:
                 pass
 
-        if waypoints_data:
-            return waypoints_data
-
-        # 4종 지정 슬롯 기본 템플릿
-        return {
-            "1_종이": {
-                "slot": "1",
-                "name": "종이",
-                "date": time.strftime("%Y-%m-%d"),
-                "trajectory": [{"left": 35, "right": 35, "duration": 1.0}]
-            },
-            "2_종이팩": {
-                "slot": "2",
-                "name": "종이팩",
-                "date": time.strftime("%Y-%m-%d"),
-                "trajectory": [{"left": -20, "right": 35, "duration": 0.9}]
-            },
-            "3_플라스틱/페트병": {
-                "slot": "3",
-                "name": "플라스틱/페트병",
-                "date": time.strftime("%Y-%m-%d"),
-                "trajectory": [{"left": -35, "right": 35, "duration": 0.6}, {"left": 35, "right": 35, "duration": 0.7}]
-            },
-            "4_캔": {
-                "slot": "4",
-                "name": "캔",
-                "date": time.strftime("%Y-%m-%d"),
-                "trajectory": [{"left": 35, "right": -35, "duration": 0.6}, {"left": 35, "right": 35, "duration": 0.7}]
-            }
-        }
+        return waypoints_data
 
     def _load_prompts_history(self) -> List[Dict[str, Any]]:
         if PROMPTS_LOG_PATH.exists():

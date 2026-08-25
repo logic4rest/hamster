@@ -661,13 +661,30 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
     # 4. 💡 집게를 닫은 후 비로소 지정된 수거함 슬롯(1~4번)으로 주행 시작!
     named_route = waypoint_manager.get_waypoint(mapped_category)
 
-    if named_route:
+    if named_route and len(named_route) > 0:
         waypoint_manager.log_event("AUTONOMOUS_NAV", f"슬롯 [{slot_id}] '{mapped_category}' 지정 경로 자율주행 시작 ({len(named_route)}단계)")
         for idx, step in enumerate(named_route, 1):
             status_hud.update_status(motion=f"[{slot_id}번 {mapped_category}] 지정 슬롯 자율주행 중 [{idx}/{len(named_route)}]")
             hamster.wheels(step["left"], step["right"])
             update_screen(f"[{slot_id}번 {mapped_category}] 지정 슬롯 이동 중 [{idx}/{len(named_route)}]", step["duration"])
 
+        hamster.stop()
+
+        # 5. 수거함 도착 완료 시 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입!
+        print(f"  🎉 [{slot_id}번 {mapped_category} 수거함 도착] 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입 완료!")
+        control_physical_gripper(hamster, "open")
+        status_hud.update_status(motion=f"[{mapped_category}] 수거함 도착! 집게 열기 (RELEASE)")
+        update_screen("수거함 도착! 집게 열기 투입 완료 (OPEN)", 0.5)
+
+        # 6. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
+        print("  ↩️ 원본 대칭 역주행 궤적으로 시작 위치로 오차 0.00cm 복귀합니다...")
+        status_hud.update_status(motion="↩️ 시작 위치로 대칭 정밀 역주행 복귀 중")
+        reverse_route = waypoint_manager.get_reverse_return_trajectory(named_route)
+        for idx, step in enumerate(reverse_route, 1):
+            hamster.wheels(step["left"], step["right"])
+            update_screen(f"↩️ [정밀 역주행] 시작 위치 복귀 중 [{idx}/{len(reverse_route)}]", step["duration"])
+
+        hamster.stop()
     elif mapped_category == "이물질/경고":
         waypoint_manager.log_event("WARNING_EVENT", "오배출/이물질 쓰레기 경고 발령")
         control_physical_gripper(hamster, "open")
@@ -678,25 +695,10 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
         update_screen("경고 오배출! 집게 해제 및 후진 퇴거", 0.8)
         hamster.stop()
         return
-
-    hamster.stop()
-
-    # 5. 수거함 도착 완료 시 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입!
-    print(f"  🎉 [{slot_id}번 {mapped_category} 수거함 도착] 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입 완료!")
-    control_physical_gripper(hamster, "open")
-    status_hud.update_status(motion=f"[{mapped_category}] 수거함 도착! 집게 열기 (RELEASE)")
-    update_screen("수거함 도착! 집게 열기 투입 완료 (OPEN)", 0.5)
-
-    # 6. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
-    if named_route:
-        print("  ↩️ 원본 대칭 역주행 궤적으로 시작 위치로 오차 0.00cm 복귀합니다...")
-        status_hud.update_status(motion="↩️ 시작 위치로 대칭 정밀 역주행 복귀 중")
-        reverse_route = waypoint_manager.get_reverse_return_trajectory(named_route)
-        for idx, step in enumerate(reverse_route, 1):
-            hamster.wheels(step["left"], step["right"])
-            update_screen(f"↩️ [정밀 역주행] 시작 위치 복귀 중 [{idx}/{len(reverse_route)}]", step["duration"])
-
-        hamster.stop()
+    else:
+        print(f"  ⚠️ [슬롯 {slot_id}번 '{mapped_category}'] 저장된 자율주행 이동 경로가 없습니다! (시뮬레이션 주행 생략)")
+        status_hud.update_status(motion=f"[{mapped_category}] 저장된 경로 없음 (이동 생략)")
+        update_screen(f"⚠️ [{slot_id}번 {mapped_category}] 저장된 이동 경로가 없습니다! 제자리 대기", 1.5)
 
     # 7. 복귀 완료 후 다음 감지를 위해 집게를 항상 열린 상태(OPEN)로 준비
     control_physical_gripper(hamster, "open")
@@ -727,22 +729,36 @@ def countdown(cap: cv2.VideoCapture, seconds: int, web_url: str = ""):
 
 
 def open_camera():
-    print("[INFO] 웹캠 카메라를 연결하는 중...")
-    for idx in [0, 1, 2, 3]:
-        cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
-        if cap.isOpened():
-            ret, frame = cap.read()
-            if ret and frame is not None:
-                print(f"[INFO] 카메라 연결 성공! (인덱스: {idx}, DirectShow 모드)")
-                return cap
+    print("[INFO] 0번 웹캠 카메라(cv2.VideoCapture(0)) 연결 시도 중...")
+    # 1. 0번 표준 웹캠 우선 연결 시도
+    cap = cv2.VideoCapture(0)
+    if cap.isOpened():
+        ret, frame = cap.read()
+        if ret and frame is not None:
+            print("[INFO] 0번 웹캠 카메라 연결 성공!")
+            return cap
+        cap.release()
 
+    # 2. 0번 DirectShow 모드 시도
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    if cap.isOpened():
+        ret, frame = cap.read()
+        if ret and frame is not None:
+            print("[INFO] 0번 웹캠 카메라 (DirectShow) 연결 성공!")
+            return cap
+        cap.release()
+
+    # 3. 보조 카메라 인덱스 (1, 2, 3) 순차 연결 시도
+    for idx in [1, 2, 3]:
         cap = cv2.VideoCapture(idx)
         if cap.isOpened():
             ret, frame = cap.read()
             if ret and frame is not None:
-                print(f"[INFO] 카메라 연결 성공! (인덱스: {idx})")
+                print(f"[INFO] 보조 웹캠 카메라 연결 성공! (인덱스: {idx})")
                 return cap
+            cap.release()
 
+    print("[ERROR] 웹캠 카메라를 찾을 수 없습니다!")
     return None
 
 
