@@ -35,9 +35,13 @@
 ```text
 hamster/
 ├── README.md               ← 프로젝트 안내서 (현재 파일)
-├── AGENTS.md               ← 개발 및 트러블슈팅 가이드
+├── AGENTS.md               ← 개발 및 트러블슈팅 가이드 (에이전트 규칙 파일)
 ├── pyproject.toml          ← 프로젝트 메타데이터 & 의존성
 ├── main.py                 ← 독립 실행 스크립트 (OpenCV + TensorFlow 직접 사용)
+├── .agents/
+│   └── skills/
+│       └── hamster-entertainment/
+│           └── SKILL.md    ← 다른 에이전트들을 위한 음악/댄스 커스텀 스킬
 ├── hamster/
 │   ├── __init__.py
 │   └── __main__.py         ← 패키지 진입점 (roboidai 방식, 권장)
@@ -46,8 +50,13 @@ hamster/
 │   └── labels.txt          ← 클래스 레이블 목록 (7종)
 ├── data/                   ← 쓰레기 종류별 수집 이미지 데이터셋 (7개 폴더)
 └── tools/
-    ├── check_connection.py     ← 햄스터 연결 & 하드웨어 점검 도구
-    └── keyboard_control.py    ← 키보드 방향키/WASD 실시간 조종 도구
+    ├── check_connection.py      ← 햄스터 연결 & 하드웨어 점검 도구
+    ├── keyboard_control.py      ← 키보드 방향키/WASD 실시간 조종 도구
+    ├── play_furelise.py         ← '엘리제를 위하여' 음악 재생 도구
+    ├── play_grandfathers_clock.py ← '할아버지의 낡은 시계' 연주 + 틱톡 LED 애니메이션
+    ├── play_toy_forest.py       ← JayM '장난감 숲' 연주 + 숲 LED/이모지 애니메이션
+    ├── play_mario_wiggle.py     ← 마리오 테마 연주 + 제자리 엉덩이 흔들기 댄스
+    └── play_mario_gripper.py    ← 마리오 테마 연주 + 엉덩이 흔들기 + 집게 박수 3합동 댄스
 ```
 
 ---
