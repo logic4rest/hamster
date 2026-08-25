@@ -679,12 +679,8 @@ def main():
     # 📱 스마트폰 QR 스캔 모바일 리모컨 웹서버 가동!
     web_url = start_qr_web_server(port=5000)
 
-    # 💡 [유저 편의] 바탕화면 더블클릭 바로가기 생성 & 크롬 브라우저 자동 오픈!
+    # 바탕화면 바로가기 아이콘 생성 (자동 브라우저 열기는 하지 않음)
     create_desktop_shortcut(web_url)
-    try:
-        webbrowser.open(web_url)
-    except Exception:
-        pass
 
     print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
     routes_summary = []
@@ -704,6 +700,33 @@ def main():
     print("[INFO] 햄스터 봇에 연결 중...")
     hamster = Hamster()
     set_robot_led(hamster, ("off", "off"))
+
+    # 💡 [유저 요구사항] 컴퓨터 실행 시 크롬 자동 오픈 X 및 4종 수거함 위치/경로 설정 기회 제공!
+    from tools.record_paper_path import record_slot_session
+
+    print("\n" + "=" * 68)
+    print("  🐹 햄스터 로봇 분리배출 자율주행 수거함 위치/경로 설정 메뉴")
+    print("=" * 68)
+    print("  [1] 📄 1번 종이 수거함 가는 길 설정 (화살표 키 주행 ➔ Q/ESC 저장 ➔ 0.00cm 복귀)")
+    print("  [2] 🩵 2번 종이팩 수거함 가는 길 설정 (화살표 키 주행 ➔ Q/ESC 저장 ➔ 0.00cm 복귀)")
+    print("  [3] 🥤 3번 페트병/플라스틱 수거함 가는 길 설정 (화살표 키 주행 ➔ Q/ESC 저장 ➔ 0.00cm 복귀)")
+    print("  [4] 🥫 4번 캔 수거함 가는 길 설정 (화살표 키 주행 ➔ Q/ESC 저장 ➔ 0.00cm 복귀)")
+    print("  [0] 🚀 설정 완료! 실시간 AI 웹캠 스마트 분리배출 가동")
+    print("=" * 68)
+
+    while True:
+        try:
+            user_choice = input("\n👉 경로 설정 번호 입력 (1~4 설정, 0 시작) [0]: ").strip().lower()
+        except Exception:
+            user_choice = "0"
+
+        if user_choice == "" or user_choice == "0":
+            print("\n  🚀 수거함 위치 설정 완료! AI 스마트 분리배출 시스템으로 진입합니다.\n")
+            break
+        elif user_choice in ["1", "2", "3", "4"]:
+            record_slot_session(hamster, user_choice)
+        else:
+            print("  ⚠️ 올바른 번호 (1, 2, 3, 4 설정, 0 시작)를 입력해 주세요.")
 
     # 웹 스마트폰 콜백 바인딩
     def handle_web_command(cmd_type: str, value: str):
