@@ -618,12 +618,63 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
 
 
 def main():
-    """메인 스마트 분리배출 프로그램 진입점"""
+    """메인 스마트 분리배출 프로그램 진입점 (v9.0)"""
+    waypoint_manager.log_event("SYSTEM_START", "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v9.0)")
+
+    # 📱 스마트폰 QR 스캔 모바일 리모컨 웹서버 가동!
+    web_url = start_qr_web_server(port=5000)
+    create_desktop_shortcut(web_url)
+
+    # ── AI 모델 선택 인터페이스 ──
+    print("\n" + "=" * 68)
+    print("  🧠 AI 쓰레기 분리배출 학습 모델 선택 메뉴 (v9.0)")
+    print("=" * 68)
+    print("  [1] 📁 모델1 (models/모델1)")
+    print("  [2] 📁 모델2 (models/모델2)")
+    print("=" * 68)
+    try:
+        model_choice = input("👉 사용할 AI 모델 입력 (1: 모델1, 2: 모델2) [1]: ").strip().lower()
+    except Exception:
+        model_choice = "1"
+
+    if model_choice in ["2", "모델2"]:
+        selected_model_name = "모델2"
+    else:
+        selected_model_name = "모델1"
+
+    # 모델 파일 경로 전수 검색 (PROJECT_ROOT/models 및 hamster/models 모두 탐색)
+    search_dirs = [
+        PROJECT_ROOT / "models" / selected_model_name,
+        Path(__file__).parent / "models" / selected_model_name,
+        PROJECT_ROOT / "models",
+        Path(__file__).parent / "models"
+    ]
+
+    cur_model_path = None
+    cur_labels_path = None
+    for m_dir in search_dirs:
+        m_h5 = m_dir / "keras_model.h5"
+        m_lbl = m_dir / "labels.txt"
+        if m_h5.exists() and m_lbl.exists():
+            cur_model_path = str(m_h5)
+            cur_labels_path = str(m_lbl)
+            break
+
+    if not cur_model_path:
+        cur_model_path = str(PROJECT_ROOT / "models" / "keras_model.h5")
+        cur_labels_path = str(PROJECT_ROOT / "models" / "labels.txt")
+
+    print(f"\n[INFO] 🧠 AI 모델 '{selected_model_name}' 불러오는 중... ({cur_model_path})")
+    tmi = ai.TMI(cur_model_path, cur_labels_path)
+    print(f"[INFO] ✅ '{selected_model_name}' AI 모델 로드 완료!")
+
+    stats = load_stats()
+
     print("[INFO] 햄스터 봇에 연결 중...")
     hamster = Hamster()
     set_robot_led(hamster, ("off", "off"))
 
-    is_paused = False # 💡 스페이스바(Spacebar) 감지 일시정지/재개 플래그 (기본: 바로 감지 시작)
+    is_paused = False # 💡 스페이스바(Spacebar) 감지 일시정지/재개 플래그
 
     # 웹 스마트폰 콜백 바인딩
     def handle_web_command(cmd_type: str, value: str):
@@ -657,10 +708,10 @@ def main():
 
     control_physical_gripper(hamster, "open")
 
-    # ★ [핵심] 시작 즉시 웹캠을 켜지 않고 위치 지정 메뉴를 먼저 실행! (0번 누르면 웹캠 시작)
+    # ★ 시작 시 위치 지정 메뉴 실행 (0번 누르면 웹캠 시작)
     initial_arrow_teach_session(hamster)
 
-    # 0번을 입력했을 때 비로소 웹캠 카메라 연결
+    # 0번 입력 후 웹캠 연결
     cam = open_camera()
     if cam is None:
         set_robot_led(hamster, ("off", "off"))
@@ -673,7 +724,7 @@ def main():
     cam.count_down(COUNTDOWN_SEC)
 
     print("\n" + "=" * 65)
-    print("  [📱 스마트폰 QR 스캔 모바일 리모컨 지원 AI 스마트 수거 시스템]")
+    print("  [📱 스마트폰 QR 스캔 모바일 리모컨 지원 AI 스마트 수거 시스템 v9.0]")
     print(f"  - 🧠 현재 선택된 AI 모델: [{selected_model_name}]")
     print(f"  - 📱 스마트폰 카메라 접속 URL: {web_url}")
     print("  - ⌨️ [스페이스바]: AI 감지 일시정지(PAUSE) / 재개(RESUME) 토글")

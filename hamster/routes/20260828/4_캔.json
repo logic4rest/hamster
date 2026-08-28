@@ -1,0 +1,38 @@
+{
+  "slot": "4",
+  "name": "캔",
+  "date": "2026-08-28 15:47:04",
+  "trajectory_steps": 6,
+  "trajectory": [
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 6.199981927871704
+    },
+    {
+      "left": 35,
+      "right": -35,
+      "duration": 0.9837250709533691
+    },
+    {
+      "left": -35,
+      "right": 35,
+      "duration": 0.08446097373962402
+    },
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 10.478909969329834
+    },
+    {
+      "left": -35,
+      "right": 35,
+      "duration": 0.9939801692962646
+    },
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 3.5296616554260254
+    }
+  ]
+}

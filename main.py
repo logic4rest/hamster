@@ -812,7 +812,7 @@ def open_camera():
 def main():
     global web_sort_trigger
 
-    waypoint_manager.log_event("SYSTEM_START", "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)")
+    waypoint_manager.log_event("SYSTEM_START", "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v9.0)")
 
     # 📱 스마트폰 QR 스캔 모바일 리모컨 웹서버 가동!
     web_url = start_qr_web_server(port=5000)

@@ -53,41 +53,71 @@ class WaypointManager:
         self.prompts_history: List[Dict[str, Any]] = self._load_prompts_history()
 
     def _load_master_waypoints(self) -> Dict[str, Dict[str, Any]]:
-        """마스터 북마크 파일 및 routes 디렉터리 내 개별 저장 JSON 자동 로드"""
+        """마스터 북마크 파일 및 routes 디렉터리 내 개별 저장 JSON 자동 로드 (다중 경로 전수 탐색)"""
         waypoints_data = {}
 
-        # 1. 마스터 파일(waypoints.json) 우선 로드
-        if WAYPOINTS_MASTER_PATH.exists():
-            try:
-                with open(WAYPOINTS_MASTER_PATH, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    if isinstance(data, dict):
-                        waypoints_data.update(data)
-            except Exception as e:
-                self.log_event("ERROR", f"마스터 북마크 로드 실패: {e}")
+        # 1. 탐색할 routes 후보 경로 목록
+        search_dirs = [
+            ROUTES_DIR,
+            Path(__file__).parent / "routes",
+            Path.cwd() / "routes"
+        ]
 
-        # 2. 오늘 날짜 디렉터리 (예: routes/20260825) 우선 로드
-        today_dir = ROUTES_DIR / time.strftime("%Y%m%d")
-        target_dir = today_dir if today_dir.exists() else ROUTES_DIR
-
-        json_files = sorted(target_dir.glob("*.json"), key=lambda p: p.stat().st_mtime)
-        for jpath in json_files:
-            if jpath.name == "waypoints.json":
+        # 2. 모든 후보 디렉토리에서 waypoints.json 및 개별 *.json 파일 로드
+        for r_dir in search_dirs:
+            if not r_dir.exists():
                 continue
-            try:
-                with open(jpath, "r", encoding="utf-8") as f:
-                    content = json.load(f)
+            
+            master_file = r_dir / "waypoints.json"
+            if master_file.exists():
+                try:
+                    with open(master_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        if isinstance(data, dict):
+                            waypoints_data.update(data)
+                except Exception:
+                    pass
 
-                if isinstance(content, dict) and "trajectory" in content:
-                    item_name = content.get("name", "").strip()
-                    item_slot = content.get("slot", "").strip()
+            for jpath in r_dir.glob("**/*.json"):
+                if jpath.name == "waypoints.json":
+                    continue
+                try:
+                    with open(jpath, "r", encoding="utf-8") as f:
+                        content = json.load(f)
 
-                    if item_name:
-                        waypoints_data[item_name] = content
-                        if item_slot:
-                            waypoints_data[f"{item_slot}_{item_name}"] = content
-            except Exception:
-                pass
+                    if isinstance(content, dict) and "trajectory" in content:
+                        item_name = content.get("name", "").strip()
+                        item_slot = content.get("slot", "").strip()
+
+                        if item_name:
+                            waypoints_data[item_name] = content
+                            if item_slot:
+                                waypoints_data[f"{item_slot}_{item_name}"] = content
+                    elif isinstance(content, list):
+                        waypoints_data["종이"] = {
+                            "slot": "1",
+                            "name": "종이",
+                            "trajectory": content
+                        }
+                        waypoints_data["1_종이"] = waypoints_data["종이"]
+                except Exception:
+                    pass
+
+        # 3. 만약 다른 컴퓨터나 신규 환경에서 저장된 궤적이 부족한 경우 기본 표준 4종 슬롯 궤적 100% 보장
+        default_templates = {
+            "1_종이": {"slot": "1", "name": "종이", "trajectory": [{"left": 35, "right": 35, "duration": 1.2}]},
+            "종이": {"slot": "1", "name": "종이", "trajectory": [{"left": 35, "right": 35, "duration": 1.2}]},
+            "2_종이팩": {"slot": "2", "name": "종이팩", "trajectory": [{"left": -20, "right": 35, "duration": 0.9}, {"left": 35, "right": 35, "duration": 0.8}]},
+            "종이팩": {"slot": "2", "name": "종이팩", "trajectory": [{"left": -20, "right": 35, "duration": 0.9}, {"left": 35, "right": 35, "duration": 0.8}]},
+            "3_플라스틱/페트병": {"slot": "3", "name": "플라스틱/페트병", "trajectory": [{"left": -35, "right": 35, "duration": 0.6}, {"left": 35, "right": 35, "duration": 0.7}]},
+            "플라스틱/페트병": {"slot": "3", "name": "플라스틱/페트병", "trajectory": [{"left": -35, "right": 35, "duration": 0.6}, {"left": 35, "right": 35, "duration": 0.7}]},
+            "4_캔": {"slot": "4", "name": "캔", "trajectory": [{"left": 35, "right": -35, "duration": 0.6}, {"left": 35, "right": 35, "duration": 0.7}]},
+            "캔": {"slot": "4", "name": "캔", "trajectory": [{"left": 35, "right": -35, "duration": 0.6}, {"left": 35, "right": 35, "duration": 0.7}]}
+        }
+
+        for k, v in default_templates.items():
+            if k not in waypoints_data:
+                waypoints_data[k] = v
 
         return waypoints_data
 

@@ -1,0 +1,276 @@
+{
+  "1_종이": {
+    "slot": "1",
+    "name": "종이",
+    "date": "2026-08-28 15:43:10",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.819683313369751
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.8564400672912598
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 4.525104522705078
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.9434175491333008
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 1.3116786479949951
+      }
+    ]
+  },
+  "종이": {
+    "slot": "1",
+    "name": "종이",
+    "date": "2026-08-28 15:43:10",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.819683313369751
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.8564400672912598
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 4.525104522705078
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.9434175491333008
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 1.3116786479949951
+      }
+    ]
+  },
+  "2_종이팩": {
+    "slot": "2",
+    "name": "종이팩",
+    "date": "2026-08-28 15:43:51",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.651715040206909
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.770453929901123
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 4.344768285751343
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.7648806571960449
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.7388288974761963
+      }
+    ]
+  },
+  "종이팩": {
+    "slot": "2",
+    "name": "종이팩",
+    "date": "2026-08-28 15:43:51",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.651715040206909
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.770453929901123
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 4.344768285751343
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.7648806571960449
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.7388288974761963
+      }
+    ]
+  },
+  "3_플라스틱/페트병": {
+    "slot": "3",
+    "name": "플라스틱/페트병",
+    "date": "2026-08-28 15:46:06",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.271972179412842
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.8617560863494873
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 10.377423763275146
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.820868968963623
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.1345391273498535
+      }
+    ]
+  },
+  "플라스틱/페트병": {
+    "slot": "3",
+    "name": "플라스틱/페트병",
+    "date": "2026-08-28 15:46:06",
+    "trajectory_steps": 5,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 5.271972179412842
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.8617560863494873
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 10.377423763275146
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.820868968963623
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.1345391273498535
+      }
+    ]
+  },
+  "4_캔": {
+    "slot": "4",
+    "name": "캔",
+    "date": "2026-08-28 15:47:04",
+    "trajectory_steps": 6,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 6.199981927871704
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.9837250709533691
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.08446097373962402
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 10.478909969329834
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.9939801692962646
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.5296616554260254
+      }
+    ]
+  },
+  "캔": {
+    "slot": "4",
+    "name": "캔",
+    "date": "2026-08-28 15:47:04",
+    "trajectory_steps": 6,
+    "trajectory": [
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 6.199981927871704
+      },
+      {
+        "left": 35,
+        "right": -35,
+        "duration": 0.9837250709533691
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.08446097373962402
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 10.478909969329834
+      },
+      {
+        "left": -35,
+        "right": 35,
+        "duration": 0.9939801692962646
+      },
+      {
+        "left": 35,
+        "right": 35,
+        "duration": 3.5296616554260254
+      }
+    ]
+  }
+}
