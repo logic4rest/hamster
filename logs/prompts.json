@@ -1,602 +1,624 @@
 [
   {
-    "timestamp": "2026-08-23 21:34:11",
+    "timestamp": "2026-08-26 22:54:21",
     "event_type": "SORTING_COMPLETE",
     "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:34:12",
+    "timestamp": "2026-08-26 22:54:22",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_213412_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225422_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:34:12",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.89)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:34:19",
+    "timestamp": "2026-08-26 22:54:31",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:34:51",
+    "timestamp": "2026-08-26 22:55:21",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:34:59",
+    "timestamp": "2026-08-26 22:55:22",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_213459_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225522_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:34:59",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.80)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:35:06",
+    "timestamp": "2026-08-26 22:55:31",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:35:38",
+    "timestamp": "2026-08-26 22:56:21",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:35:38",
+    "timestamp": "2026-08-26 22:56:23",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_213538_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225623_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:35:38",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.82)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:35:46",
+    "timestamp": "2026-08-26 22:56:31",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:36:17",
+    "timestamp": "2026-08-26 22:57:21",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:36:24",
+    "timestamp": "2026-08-26 22:57:23",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_213624_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225723_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:36:24",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.82)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:36:32",
+    "timestamp": "2026-08-26 22:57:31",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:37:03",
+    "timestamp": "2026-08-26 22:58:22",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:37:08",
+    "timestamp": "2026-08-26 22:58:24",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_213708_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225824_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:37:08",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.82)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:37:15",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:37:46",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:37:50",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_213750_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:37:50",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.96)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:37:58",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:45:18",
+    "timestamp": "2026-08-26 23:44:33",
     "event_type": "SYSTEM_START",
     "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:45:56",
+    "timestamp": "2026-08-26 23:47:20",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [4] '캔' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260826\\4_캔.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-26 23:48:11",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_214556_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_234811_종이.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:45:56",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.89)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:46:04",
+    "timestamp": "2026-08-26 23:48:20",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (6단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:46:35",
+    "timestamp": "2026-08-26 23:48:54",
     "event_type": "SORTING_COMPLETE",
     "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:46:35",
+    "timestamp": "2026-08-26 23:48:54",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_214635_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_234854_종이팩.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:46:36",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.83)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:46:43",
+    "timestamp": "2026-08-26 23:49:03",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:47:14",
+    "timestamp": "2026-08-26 23:49:39",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [2번 종이팩]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:47:15",
+    "timestamp": "2026-08-26 23:49:40",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_214715_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_234940_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:47:15",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.88)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:47:22",
+    "timestamp": "2026-08-26 23:49:49",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:47:54",
+    "timestamp": "2026-08-26 23:50:33",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:47:55",
+    "timestamp": "2026-08-26 23:50:33",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_214755_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_235033_플라스틱_페트병.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:47:55",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.90)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:48:02",
+    "timestamp": "2026-08-26 23:50:42",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [3] '플라스틱/페트병' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:48:34",
+    "timestamp": "2026-08-26 23:51:33",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [3번 플라스틱/페트병]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:48:37",
+    "timestamp": "2026-08-26 23:51:33",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_214837_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_235133_플라스틱_페트병.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:48:37",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.93)",
+    "timestamp": "2026-08-26 23:51:35",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:48:45",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:49:16",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:49:17",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_214917_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:49:17",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.95)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:49:24",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:49:56",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:49:56",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_214956_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:49:56",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.88)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:50:04",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:50:35",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:50:36",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215036_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:50:36",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.86)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:50:43",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:51:29",
+    "timestamp": "2026-08-27 13:25:36",
     "event_type": "SYSTEM_START",
     "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:52:06",
+    "timestamp": "2026-08-27 14:12:12",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:13:58",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215206_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_141358_종이팩.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:52:06",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.81)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:52:14",
+    "timestamp": "2026-08-27 14:14:07",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:52:45",
+    "timestamp": "2026-08-27 14:14:40",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:16:00",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:17:09",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:17:15",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:17:52",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_141752_캔.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:18:00",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:18:44",
+    "event_type": "SORTING_COMPLETE",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:18:45",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_141845_종이팩.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:18:54",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:19:30",
+    "event_type": "SORTING_COMPLETE",
+    "message": "분리배출 및 시작위치 복귀 완료: [2번 종이팩]",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:19:31",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_141931_플라스틱_페트병.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:19:39",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [3] '플라스틱/페트병' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:20:30",
+    "event_type": "SORTING_COMPLETE",
+    "message": "분리배출 및 시작위치 복귀 완료: [3번 플라스틱/페트병]",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:20:31",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_142031_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:20:39",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (6단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:21:13",
     "event_type": "SORTING_COMPLETE",
     "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:52:45",
+    "timestamp": "2026-08-27 14:21:14",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215245_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_142114_플라스틱_페트병.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:52:45",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.93)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:52:53",
+    "timestamp": "2026-08-27 14:21:22",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [3] '플라스틱/페트병' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:53:24",
+    "timestamp": "2026-08-27 14:22:13",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [3번 플라스틱/페트병]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:53:25",
+    "timestamp": "2026-08-27 14:22:15",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215325_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_142215_종이팩.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:53:25",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.88)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:53:32",
+    "timestamp": "2026-08-27 14:22:24",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [2] '종이팩' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:54:04",
+    "timestamp": "2026-08-27 14:23:00",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [2번 종이팩]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:54:04",
+    "timestamp": "2026-08-27 14:23:01",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215404_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_142301_플라스틱_페트병.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:54:04",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.92)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:54:12",
+    "timestamp": "2026-08-27 14:23:10",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [3] '플라스틱/페트병' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:54:43",
+    "timestamp": "2026-08-27 14:24:00",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [3번 플라스틱/페트병]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:54:44",
+    "timestamp": "2026-08-27 14:24:01",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215444_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_142401_플라스틱_페트병.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:54:44",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.87)",
+    "timestamp": "2026-08-27 14:24:05",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:54:51",
+    "timestamp": "2026-08-27 14:28:01",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:29:26",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260827_142926_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-27 14:29:35",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (6단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:55:23",
+    "timestamp": "2026-08-27 14:30:06",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:24:32",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:26:34",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_152634_캔.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:26:43",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:26:50",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:28:14",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:29:12",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_152912_캔.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:29:20",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:30:04",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:55:25",
+    "timestamp": "2026-08-28 15:30:29",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215525_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_153029_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:55:25",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.86)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:55:32",
+    "timestamp": "2026-08-28 15:30:37",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:56:03",
+    "timestamp": "2026-08-28 15:30:44",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:31:30",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:32:46",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_153246_캔.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:32:54",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:33:39",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:56:04",
+    "timestamp": "2026-08-28 15:33:46",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215604_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_153346_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:56:04",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.84)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:56:12",
+    "timestamp": "2026-08-28 15:33:55",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (5단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:56:43",
+    "timestamp": "2026-08-28 15:34:30",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:35:55",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:39:12",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (6단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:40:03",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [2] '종이팩' 위치 저장 완료 (6단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\2_종이팩.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:40:52",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\3_플라스틱_페트병.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:41:41",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (2단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\3_플라스틱_페트병.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:42:27",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\3_플라스틱_페트병.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:43:10",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [1] '종이' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\1_종이.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:43:51",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [2] '종이팩' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\2_종이팩.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:44:57",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\3_플라스틱_페트병.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:46:06",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [3] '플라스틱/페트병' 위치 저장 완료 (5단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\3_플라스틱_페트병.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:47:05",
+    "event_type": "WAYPOINT_SAVED",
+    "message": "슬롯 [4] '캔' 위치 저장 완료 (6단계 오차보정)",
+    "extra": {
+      "partition": "C:\\Users\\User\\Desktop\\hamster\\routes\\20260828\\4_캔.json"
+    }
+  },
+  {
+    "timestamp": "2026-08-28 15:48:22",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_154822_캔.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:48:30",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 15:49:19",
     "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:56:44",
+    "timestamp": "2026-08-28 15:49:20",
     "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215644_종이.jpg",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_154920_캔.jpg",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:56:44",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.93)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:56:52",
+    "timestamp": "2026-08-28 15:49:29",
     "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
     "extra": {}
   },
   {
-    "timestamp": "2026-08-23 21:57:23",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:57:24",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215724_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:57:24",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.91)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:57:31",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:58:02",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:58:03",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215803_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:58:03",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.93)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:58:11",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:58:42",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:58:43",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260823_215843_종이.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:58:43",
-    "event_type": "SORTING_START",
-    "message": "6프레임분석 4초대기 수거 시퀀스 시작: '종이' (신뢰도: 0.91)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-23 21:58:50",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "timestamp": "2026-08-28 15:49:33",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
     "extra": {}
   }
 ]

@@ -1,0 +1,33 @@
+{
+  "slot": "2",
+  "name": "종이팩",
+  "date": "2026-08-28 15:43:51",
+  "trajectory_steps": 5,
+  "trajectory": [
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 5.651715040206909
+    },
+    {
+      "left": 35,
+      "right": -35,
+      "duration": 0.770453929901123
+    },
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 4.344768285751343
+    },
+    {
+      "left": -35,
+      "right": 35,
+      "duration": 0.7648806571960449
+    },
+    {
+      "left": 35,
+      "right": 35,
+      "duration": 3.7388288974761963
+    }
+  ]
+}

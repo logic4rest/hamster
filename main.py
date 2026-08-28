@@ -54,6 +54,10 @@ MODEL_DIR   = os.path.join(os.path.dirname(__file__), "models")
 MODEL_PATH  = os.path.join(MODEL_DIR, "keras_model.h5")
 LABELS_PATH = os.path.join(MODEL_DIR, "labels.txt")
 
+if not os.path.exists(MODEL_PATH) and os.path.exists(os.path.join(MODEL_DIR, "모델1", "keras_model.h5")):
+    MODEL_PATH = os.path.join(MODEL_DIR, "모델1", "keras_model.h5")
+    LABELS_PATH = os.path.join(MODEL_DIR, "모델1", "labels.txt")
+
 TODAY_STR    = time.strftime("%Y%m%d")
 TODAY_CAPTURES_DIR = CAPTURES_DIR / f"{TODAY_STR}_분리배출기록"
 TODAY_CAPTURES_DIR.mkdir(parents=True, exist_ok=True)
@@ -99,7 +103,7 @@ LED_MAP = {
     "캔": ("green", "green"),
     "비닐": ("magenta", "magenta"),
     "종이": ("yellow", "yellow"),
-    "종이팩": ("white", "white"),
+    "종이팩": ("red", "red"),
     "이물질/경고": ("red", "red"),
 }
 
@@ -109,7 +113,7 @@ COLOR_BGR_MAP = {
     "캔": (0, 220, 0),                 # 초록색
     "비닐": (255, 0, 255),               # 마젠타/분홍색
     "종이": (0, 220, 255),               # 노란색
-    "종이팩": (255, 255, 255),            # 흰색 (White, BGR)
+    "종이팩": (0, 0, 255),               # 빨간색 (Red, BGR)
     "이물질/경고": (0, 0, 235),         # 빨간색 (BGR)
     "없음": (120, 120, 120),             # 회색
 }
@@ -210,21 +214,32 @@ def save_stats(stats: dict):
 
 
 def map_raw_label_to_category(raw_label: str) -> str:
-    if not raw_label or raw_label == "없음":
+    if not raw_label:
         return "없음"
 
-    if raw_label in CATEGORY_MAP:
-        return CATEGORY_MAP[raw_label]
+    clean_label = str(raw_label).strip()
 
-    if any(k in raw_label for k in ["유리병", "유리통", "유리", "병", "페트병", "패트병", "플라스틱", "플라시틱"]):
+    # 숫자가 앞에 붙은 라벨 처리 (예: "0 없음", "1 종이", "0 Background")
+    if " " in clean_label:
+        parts = clean_label.split(" ", 1)
+        if parts[0].isdigit():
+            clean_label = parts[1].strip()
+
+    if clean_label in ["없음", "None", "Background", "background", "대기", "0"]:
+        return "없음"
+
+    if clean_label in CATEGORY_MAP:
+        return CATEGORY_MAP[clean_label]
+
+    if any(k in clean_label for k in ["유리병", "유리통", "유리", "병", "페트병", "패트병", "플라스틱", "플라시틱"]):
         return "플라스틱/페트병"
-    elif "캔" in raw_label:
+    elif "캔" in clean_label:
         return "캔"
-    elif any(k in raw_label for k in ["이물질", "라벨", "음식물", "얼음"]):
+    elif any(k in clean_label for k in ["이물질", "라벨", "음식물", "얼음"]):
         return "이물질/경고"
-    elif "종이팩" in raw_label or "우유팩" in raw_label:
+    elif "종이팩" in clean_label or "우유팩" in clean_label:
         return "종이팩"
-    elif "종이" in raw_label:
+    elif "종이" in clean_label:
         return "종이"
 
     return "없음"
@@ -243,12 +258,14 @@ def load_labels(path: str) -> dict[int, str]:
 
 
 def load_model(path: str):
+    import shutil
+    import tempfile
     import tensorflow as tf
-    from tensorflow import keras
+    import tf_keras
 
     # 1. Teachable Machine DepthwiseConv2D (groups) 호환성 패치
     try:
-        from tensorflow.keras.layers import DepthwiseConv2D
+        from tf_keras.layers import DepthwiseConv2D
         _orig_dw_init = DepthwiseConv2D.__init__
         def _patched_dw_init(self, *args, **kwargs):
             kwargs.pop("groups", None)
@@ -259,7 +276,7 @@ def load_model(path: str):
 
     # 2. Keras 3 vs Keras 2 InputLayer (batch_shape) 호환성 패치
     try:
-        from tensorflow.keras.layers import InputLayer
+        from tf_keras.layers import InputLayer
         _orig_input_init = InputLayer.__init__
         def _patched_input_init(self, *args, **kwargs):
             if "batch_shape" in kwargs and "batch_input_shape" not in kwargs:
@@ -271,17 +288,24 @@ def load_model(path: str):
     except Exception:
         pass
 
-    # 3. Keras 모델 로드
-    try:
-        return keras.models.load_model(str(path), compile=False)
-    except Exception:
-        pass
+    # 3. 윈도우 한글 경로(모델1, 모델2 등) C++ TensorFlow 유니코드 디코드 방지 임시 ASCII 파일 로더
+    target_path = str(path)
+    temp_file_created = None
 
     try:
-        import tf_keras
-        return tf_keras.models.load_model(str(path), compile=False)
-    except Exception as e:
-        return tf.keras.models.load_model(str(path), compile=False)
+        if any(ord(c) > 127 for c in target_path):
+            temp_dir = tempfile.gettempdir()
+            temp_file_created = os.path.join(temp_dir, "hamster_model_load.h5")
+            shutil.copy2(target_path, temp_file_created)
+            target_path = temp_file_created
+
+        return tf_keras.models.load_model(target_path, compile=False)
+    finally:
+        if temp_file_created and os.path.exists(temp_file_created):
+            try:
+                os.remove(temp_file_created)
+            except Exception:
+                pass
 
 
 def preprocess(frame: np.ndarray) -> np.ndarray:
@@ -300,7 +324,7 @@ def preprocess(frame: np.ndarray) -> np.ndarray:
     return np.expand_dims(img, axis=0)
 
 
-def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int, max_count: int, stats: dict, gripper_status: str = "") -> np.ndarray:
+def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int, max_count: int, stats: dict, gripper_status: str = "", is_paused: bool = False, model_name: str = "모델1") -> np.ndarray:
     """단일 패스 PIL 메모리 독립 렌더러 (그래픽 중복 깨짐 100% 원천 차단)"""
     if frame is None:
         return frame
@@ -329,6 +353,12 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     cv2.line(canvas, (x2, y2), (x2, y2 - c_len), color, thickness + 2)
 
     text_draw_list = []
+
+    # 💡 일시정지(PAUSED) 상태 큼직한 메인 오버레이 렌더링
+    if is_paused:
+        cv2.rectangle(canvas, (x1 - 25, y1 + 50), (x2 + 25, y1 + 135), (0, 100, 255), -1)
+        text_draw_list.append(("⏸️ AI 감지 일시정지 (PAUSED)", (x1 - 10, y1 + 58), 18, (255, 255, 255)))
+        text_draw_list.append(("[스페이스바]를 눌러 인식을 시작/재개하세요!", (x1 - 10, y1 + 95), 16, (255, 255, 255)))
 
     # 2. 상태 오버레이 배경 박스
     if gripper_status:
@@ -363,7 +393,7 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
         else:
             tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}프레임 분석]"
     else:
-        tag_text = "쓰레기 감지 대기 중... (6프레임 연속 분석 대기)"
+        tag_text = "쓰레기 감지 대기 중... (6프레임 연속 분석 대기)" if not is_paused else "⏸️ AI 감지 일시정지 중"
 
     text_draw_list.append((tag_text, (x1 + 10, y1 - 32), 18, color))
 
@@ -375,7 +405,7 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     text_draw_list.append((tip_text, (15, h - 38), 15, text_color))
 
     # 5. 우측 상단 실시간 수거 통계 HUD
-    stats_str = f"[통계] 총 {stats['total']}개 | 플라스틱:{stats.get('플라스틱/페트병', 0)}  캔:{stats.get('캔', 0)}  종이:{stats.get('종이', 0)}  종이팩:{stats.get('종이팩', 0)}  경고:{stats.get('이물질/경고', 0)}"
+    stats_str = f"[{model_name}] 총 {stats['total']}개 | 플라스틱:{stats.get('플라스틱/페트병', 0)}  캔:{stats.get('캔', 0)}  종이:{stats.get('종이', 0)}  종이팩:{stats.get('종이팩', 0)}  경고:{stats.get('이물질/경고', 0)}"
     cv2.rectangle(canvas, (0, 0), (w, 35), (20, 20, 20), -1)
     text_draw_list.append((stats_str, (10, 6), 13, (255, 255, 255)))
 
@@ -619,9 +649,17 @@ def play_mario_celebration(hamster, update_screen_func=None):
 
 
 def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: float, stats: dict):
-    """6프레임 확정 ➔ 제자리 정지 ➔ 집게열기 ➔ 4초간 쓰레기놓기 대기 ➔ 집게닫기 ➔ 지정위치이동 ➔ 투입 ➔ 마리오 댄스 ➔ 오차 0.00cm 정밀 역주행 복귀"""
+    """6프레임 확정 ➔ 제자리 정지 ➔ 집게열기 ➔ 4초간 쓰레기놓기 대기 ➔ 집게닫기 ➔ 지정위치이동 ➔ 투입 ➔ 오차 0.00cm 정밀 역주행 복귀"""
+    if not mapped_category or mapped_category in ["없음", "None", "Background", "대기"]:
+        print("  🛑 ['없음' 카테고리 감지] 주행 및 집게 동작을 수행하지 않고 대기합니다.")
+        return
+
     slot_map = {"종이": "1", "종이팩": "2", "플라스틱/페트병": "3", "캔": "4"}
-    slot_id = slot_map.get(mapped_category, "3" if "플라스틱" in mapped_category else "1")
+    slot_id = slot_map.get(mapped_category, None)
+
+    if slot_id is None and mapped_category != "이물질/경고":
+        print(f"  ⚠️ [{mapped_category}] 해당 카테고리의 수거함 슬롯이 없으므로 로봇 이동을 수행하지 않습니다.")
+        return
 
     def update_screen(status_msg: str, duration_sec: float):
         start = time.time()
@@ -651,14 +689,14 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
         status_hud.update_status(motion=f"[{mapped_category}] 집게 열고 4초 대기 중 ({rem_sec:.1f}s)")
         update_screen(f"🦾 [{mapped_category}] 집게 열림(OPEN)! 쓰레기를 놓아주세요 ({rem_sec:.1f}초 남음)", 0.1)
 
-    # 3. 💡 5초 대기가 끝난 후 집게 닫기 (CLOSE) 쓰레기 포획!
-    print(f"  🦾 [5초 대기 완료!] 집게 닫기 (CLOSE) 쓰레기 포획 완료!")
+    # 3. 💡 4초 대기가 끝난 후 비로소 집게 오무리기 (CLOSE) 쓰레기 포획!
+    print(f"  🦾 [4초 대기 완료!] 집게 오무리기 (CLOSE) 쓰레기 포획 완료!")
     hamster.beep()
     control_physical_gripper(hamster, "close")
-    status_hud.update_status(motion="5초 대기 완료! 집게 닫기 (CLOSE)")
-    update_screen("5초 대기 완료! 집게 닫기 & 쓰레기 포획 (CLOSE)", 0.6)
+    status_hud.update_status(motion="4초 대기 완료! 집게 오무리기 (CLOSE)")
+    update_screen("4초 대기 완료! 집게 오무리기 & 쓰레기 포획 (CLOSE)", 0.6)
 
-    # 4. 💡 집게를 닫은 후 비로소 지정된 수거함 슬롯(1~4번)으로 주행 시작!
+    # 4. 💡 지정된 수거함 슬롯(1~4번)으로 사전 저장 경로 주행 시작!
     named_route = waypoint_manager.get_waypoint(mapped_category)
 
     if named_route and len(named_route) > 0:
@@ -700,7 +738,7 @@ def operate_gripper_and_transport(hamster, cap, mapped_category: str, conf: floa
         status_hud.update_status(motion=f"[{mapped_category}] 저장된 경로 없음 (이동 생략)")
         update_screen(f"⚠️ [{slot_id}번 {mapped_category}] 저장된 이동 경로가 없습니다! 제자리 대기", 1.5)
 
-    # 7. 복귀 완료 후 다음 감지를 위해 집게를 항상 열린 상태(OPEN)로 준비
+    # 8. 복귀 완료 후 다음 감지를 위해 집게를 항상 열린 상태(OPEN)로 준비
     control_physical_gripper(hamster, "open")
     status_hud.update_status(motion="대기 중 (Standby - OPEN)")
     update_screen("시작 위치 복귀 완료! 다음 쓰레기 감지 대기 중 (OPEN)...", 0.5)
@@ -790,9 +828,35 @@ def main():
         routes_summary.append(f"슬롯[{s_id} {s_name}]: {n_steps}단계")
     print(f"[INFO] 로드 완료 ➔ {', '.join(routes_summary)}")
 
-    print("[INFO] 모델을 불러오는 중...")
-    model  = load_model(MODEL_PATH)
-    labels = load_labels(LABELS_PATH)
+    # ── AI 모델 선택 인터페이스 ──
+    print("\n" + "=" * 68)
+    print("  🧠 AI 쓰레기 분리배출 학습 모델 선택 메뉴")
+    print("=" * 68)
+    print("  [1] 📁 모델1 (models/모델1)")
+    print("  [2] 📁 모델2 (models/모델2)")
+    print("=" * 68)
+    try:
+        model_choice = input("👉 사용할 AI 모델 입력 (1: 모델1, 2: 모델2) [1]: ").strip().lower()
+    except Exception:
+        model_choice = "1"
+
+    if model_choice in ["2", "모델2"]:
+        selected_model_name = "모델2"
+    else:
+        selected_model_name = "모델1"
+
+    target_model_dir = os.path.join(MODEL_DIR, selected_model_name)
+    cur_model_path = os.path.join(target_model_dir, "keras_model.h5")
+    cur_labels_path = os.path.join(target_model_dir, "labels.txt")
+
+    if not os.path.exists(cur_model_path):
+        cur_model_path = MODEL_PATH
+        cur_labels_path = LABELS_PATH
+
+    print(f"\n[INFO] 🧠 AI 모델 '{selected_model_name}' 불러오는 중... ({cur_model_path})")
+    model  = load_model(cur_model_path)
+    labels = load_labels(cur_labels_path)
+    print(f"\n[INFO] ✅ '{selected_model_name}' 모델 로드 완료! (학습 클래스: {list(labels.values())})")
 
     stats = load_stats()
     print(f"[INFO] 누적 분리배출 통계: {stats}")
@@ -828,8 +892,11 @@ def main():
         else:
             print("  ⚠️ 올바른 번호 (1, 2, 3, 4 설정, 0 시작)를 입력해 주세요.")
 
+    is_paused = False # 💡 스페이스바(Spacebar) 감지 일시정지/재개 플래그 (기본: 바로 감지 시작)
+
     # 웹 스마트폰 콜백 바인딩
     def handle_web_command(cmd_type: str, value: str):
+        nonlocal is_paused
         global web_sort_trigger
         if cmd_type == 'drive':
             speed = 35
@@ -847,6 +914,13 @@ def main():
             control_physical_gripper(hamster, value)
         elif cmd_type == 'sort':
             web_sort_trigger = value
+        elif cmd_type == 'pause':
+            is_paused = not is_paused
+            try:
+                hamster.beep()
+            except Exception:
+                pass
+            print(f"  📱 [스마트폰 웹] AI 감지 상태 변경: {'⏸️ 일시정지' if is_paused else '▶️ 재개'}")
 
     qr_server.robot_controller_callback = handle_web_command
 
@@ -866,15 +940,12 @@ def main():
 
     print("\n" + "=" * 65)
     print("  [📱 스마트폰 QR 스캔 모바일 리모컨 지원 AI 스마트 수거 시스템]")
+    print(f"  - 🧠 현재 선택된 AI 모델: [{selected_model_name}]")
     print(f"  - 📱 스마트폰 카메라 접속 URL: {web_url}")
-    print("  - 🌐 웹 브라우저 크롬 자동 접속 및 바탕화면 바로가기 생성 완료!")
+    print("  - ⌨️ [스페이스바]: AI 감지 일시정지(PAUSE) / 재개(RESUME) 토글")
     print("  - 🦾 초기 및 대기 상태: 실물 집게 열림(OPEN) 수거 대기 유지")
-    print("  - [1] 종이 ➔ 1번 수거함 이동")
-    print("  - [2] 종이팩 ➔ 2번 수거함 이동")
-    print("  - [3] 패트병(플라스틱) ➔ 3번 수거함 이동")
-    print("  - [4] 캔 ➔ 4번 수거함 이동")
-    print("  - 🤖 AI/웹 감지 시: 6프레임 분석 ➔ 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 닫기 ➔ 주행!")
-    print("  - ↩️ 정밀 물리 대칭 엔진: 배출 후 1:1 대칭 역주행으로 시작 위치 오차 0.00cm 완벽 복귀!")
+    print("  - [1] 종이 ➔ 1번 수거함 이동 | [2] 종이팩 ➔ 2번 | [3] 플라스틱 ➔ 3번 | [4] 캔 ➔ 4번")
+    print("  - 🤖 AI/웹 감지 시: 6프레임 분석 ➔ 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 오무리기(CLOSE) ➔ 수거함 주행!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
 
@@ -883,6 +954,35 @@ def main():
 
     try:
         while True:
+            # ⌨️ 스페이스바(Spacebar) 및 ESC 키 처리
+            key = cv2.waitKey(30) & 0xFF
+            if key == 27:
+                break
+            elif key == 32: # Spacebar
+                is_paused = not is_paused
+                try:
+                    hamster.beep()
+                except Exception:
+                    pass
+                status_msg = "⏸️ AI 감지 일시정지" if is_paused else "▶️ AI 감지 재개"
+                print(f"\n  [⌨️ 스페이스바] {status_msg}")
+
+            if is_paused:
+                current_target = None
+                consecutive_count = 0
+                if cap is not None:
+                    ret, frame = cap.read()
+                    if ret and frame is not None:
+                        frame = cv2.flip(frame, 1)
+                        frame = draw_hud_and_bbox(frame, "없음", 0.0, 0, REQUIRED_FRAMES, stats, gripper_status="⏸️ 일시정지 (스페이스바 누름)", is_paused=True, model_name=selected_model_name)
+                        update_web_frame(frame)
+                        cv2.imshow("Waste Sorting Hamster", frame)
+                else:
+                    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                    frame = draw_hud_and_bbox(frame, "없음", 0.0, 0, REQUIRED_FRAMES, stats, gripper_status="⏸️ 일시정지 (스페이스바 누름)", is_paused=True, model_name=selected_model_name)
+                    update_web_frame(frame)
+                continue
+
             # 📱 스마트폰 웹 원터치 분리배출 요청 처리
             if web_sort_trigger is not None:
                 cat_to_sort = web_sort_trigger
@@ -897,7 +997,7 @@ def main():
 
             if cap is None:
                 frame = np.zeros((480, 640, 3), dtype=np.uint8)
-                frame = draw_hud_and_bbox(frame, "없음", 0.0, 0, REQUIRED_FRAMES, stats, "실물 카메라 연결 대기 중 (2D 시뮬레이터 가동 가능)")
+                frame = draw_hud_and_bbox(frame, "없음", 0.0, 0, REQUIRED_FRAMES, stats, gripper_status="실물 카메라 연결 대기 중", is_paused=False, model_name=selected_model_name)
                 update_web_frame(frame)
                 time.sleep(0.1)
                 continue
@@ -927,7 +1027,7 @@ def main():
                     current_target = mapped_category
                     consecutive_count = 1
 
-                frame = draw_hud_and_bbox(frame, mapped_category, confidence, consecutive_count, REQUIRED_FRAMES, stats)
+                frame = draw_hud_and_bbox(frame, mapped_category, confidence, consecutive_count, REQUIRED_FRAMES, stats, is_paused=False, model_name=selected_model_name)
 
                 # 💡 쓰레기를 연속 6프레임 동안 정밀 분석하여 신뢰 확보 시 집게열기 & 4초대기 후 주행!
                 if consecutive_count >= REQUIRED_FRAMES:
@@ -949,17 +1049,18 @@ def main():
                     set_robot_led(hamster, ("off", "off"))
                     current_target = None
                     consecutive_count = 0
+                    print("  🎉 시작 위치 정밀 복귀 완료! 다음 쓰레기 감지 대기 중... (일시정지 필요 시 [스페이스바] 클릭)\n")
 
             else:
                 current_target = None
                 consecutive_count = 0
                 set_robot_led(hamster, ("off", "off"))
-                frame = draw_hud_and_bbox(frame, "없음", confidence, 0, REQUIRED_FRAMES, stats)
+                frame = draw_hud_and_bbox(frame, "없음", confidence, 0, REQUIRED_FRAMES, stats, is_paused=False, model_name=selected_model_name)
 
             # 웹 스트리밍으로 최신 원본 오버레이 프레임 전달
             update_web_frame(frame)
 
-            # 모니터 카메라 화면 깔끔 출력 (QR 코드 오버레이 제거 완료)
+            # 모니터 카메라 화면 깔끔 출력
             if frame is not None:
                 cv2.imshow("Waste Sorting Hamster", frame)
 

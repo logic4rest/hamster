@@ -343,6 +343,11 @@ HTML_OFFLINE_DASHBOARD = """
         </div>
     </div>
 
+    <!-- AI 감지 일시정지 / 재개 제어 -->
+    <div class="card-box">
+        <button class="btn" style="width: 100%; background: #ea580c; color: white; padding: 12px; font-weight: bold;" onclick="togglePause()">⏸️/▶️ 감지 일시정지 / 재개 (스페이스바)</button>
+    </div>
+
     <!-- 원터치 자율 수거 버튼 -->
     <div class="card-box">
         <div class="card-title">♻️ 스마트 분리배출 자율 수거</div>
@@ -386,6 +391,12 @@ HTML_OFFLINE_DASHBOARD = """
             if (navigator.vibrate) {
                 try { navigator.vibrate(40); } catch(e) {}
             }
+        }
+
+
+        function togglePause() {
+            triggerHaptic();
+            fetch('/api/pause', { method: 'POST' }).catch(() => {});
         }
 
         function setTab(tab) {
@@ -711,6 +722,12 @@ def api_sort():
     if robot_controller_callback:
         robot_controller_callback('sort', category)
     return jsonify({"status": "ok", "message": f"'{category}' 분리배출 자율 수거를 시작합니다."})
+
+@app.route('/api/pause', methods=['POST'])
+def api_pause():
+    if robot_controller_callback:
+        robot_controller_callback('pause', '')
+    return jsonify({"status": "ok"})
 
 def start_qr_web_server(port: int = 5000) -> str:
     ip = get_local_ip()

@@ -94,7 +94,7 @@ LED_MAP = {
     "플라스틱/페트병": ("blue", "blue"),
     "캔": ("green", "green"),
     "종이": ("yellow", "yellow"),
-    "종이팩": ("white", "white"),
+    "종이팩": ("red", "red"),
     "이물질/경고": ("red", "red"),
 }
 
@@ -103,7 +103,7 @@ COLOR_BGR_MAP = {
     "플라스틱/페트병": (255, 50, 0),     # 파란색 (BGR)
     "캔": (0, 220, 0),                 # 초록색
     "종이": (0, 220, 255),               # 노란색
-    "종이팩": (255, 255, 255),            # 흰색 (White, BGR)
+    "종이팩": (0, 0, 255),               # 빨간색 (Red, BGR)
     "이물질/경고": (0, 0, 235),         # 빨간색 (BGR)
     "없음": (120, 120, 120),             # 회색
 }
@@ -204,27 +204,38 @@ def save_stats(stats: dict):
 
 
 def map_raw_label_to_category(raw_label: str) -> str:
-    if not raw_label or raw_label == "없음":
+    if not raw_label:
         return "없음"
 
-    if raw_label in CATEGORY_MAP:
-        return CATEGORY_MAP[raw_label]
+    clean_label = str(raw_label).strip()
 
-    if any(k in raw_label for k in ["유리병", "유리통", "유리", "병", "페트병", "패트병", "플라스틱", "플라시틱"]):
+    # 숫자가 앞에 붙은 라벨 처리 (예: "0 없음", "1 종이", "0 Background")
+    if " " in clean_label:
+        parts = clean_label.split(" ", 1)
+        if parts[0].isdigit():
+            clean_label = parts[1].strip()
+
+    if clean_label in ["없음", "None", "Background", "background", "대기", "0"]:
+        return "없음"
+
+    if clean_label in CATEGORY_MAP:
+        return CATEGORY_MAP[clean_label]
+
+    if any(k in clean_label for k in ["유리병", "유리통", "유리", "병", "페트병", "패트병", "플라스틱", "플라시틱"]):
         return "플라스틱/페트병"
-    elif "캔" in raw_label:
+    elif "캔" in clean_label:
         return "캔"
-    elif any(k in raw_label for k in ["이물질", "라벨", "음식물", "얼음"]):
+    elif any(k in clean_label for k in ["이물질", "라벨", "음식물", "얼음"]):
         return "이물질/경고"
-    elif "종이팩" in raw_label or "우유팩" in raw_label:
+    elif "종이팩" in clean_label or "우유팩" in clean_label:
         return "종이팩"
-    elif "종이" in raw_label:
+    elif "종이" in clean_label:
         return "종이"
 
     return "없음"
 
 
-def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int, max_count: int, stats: dict, gripper_status: str = "") -> np.ndarray:
+def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int, max_count: int, stats: dict, gripper_status: str = "", is_paused: bool = False, model_name: str = "모델1", drive_mode_name: str = "모드1-저장경로") -> np.ndarray:
     """단일 패스 PIL 메모리 독립 렌더러 (그래픽 중복 깨짐 100% 원천 차단)"""
     if frame is None:
         return frame
@@ -254,6 +265,12 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
 
     text_draw_list = []
 
+    # 💡 일시정지(PAUSED) 상태 큼직한 메인 오버레이 렌더링
+    if is_paused:
+        cv2.rectangle(canvas, (x1 - 25, y1 + 50), (x2 + 25, y1 + 135), (0, 100, 255), -1)
+        text_draw_list.append(("⏸️ AI 감지 일시정지 (PAUSED)", (x1 - 10, y1 + 58), 18, (255, 255, 255)))
+        text_draw_list.append(("[스페이스바]를 눌러 인식을 시작/재개하세요!", (x1 - 10, y1 + 95), 16, (255, 255, 255)))
+
     # 2. 상태 오버레이 배경 박스
     if gripper_status:
         status_hud.update_status(motion=gripper_status)
@@ -273,6 +290,9 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
         elif "복귀" in gripper_status or "역주행" in gripper_status:
             grip_label = f"↩️ [정밀 역주행 복귀] {gripper_status}"
             g_bg_color = (150, 0, 200)
+        elif "라인" in gripper_status or "트레이서" in gripper_status:
+            grip_label = f"🛣️ [라인 트레이서 모드2] {gripper_status}"
+            g_bg_color = (0, 150, 220)
         else:
             grip_label = f"🚚 [로봇 이동 모션] {gripper_status}"
             g_bg_color = (200, 100, 0)
@@ -287,7 +307,7 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
         else:
             tag_text = f"{clean_category} | {conf:.0%} [{count}/{max_count}프레임 분석]"
     else:
-        tag_text = "쓰레기 감지 대기 중... (6프레임 연속 분석 대기)"
+        tag_text = "쓰레기 감지 대기 중... (6프레임 연속 분석 대기)" if not is_paused else "⏸️ AI 감지 일시정지 중"
 
     text_draw_list.append((tag_text, (x1 + 10, y1 - 32), 18, color))
 
@@ -299,7 +319,7 @@ def draw_hud_and_bbox(frame: np.ndarray, category: str, conf: float, count: int,
     text_draw_list.append((tip_text, (15, h - 38), 15, text_color))
 
     # 5. 우측 상단 실시간 수거 통계 HUD
-    stats_str = f"[통계] 총 {stats['total']}개 | 플라스틱:{stats.get('플라스틱/페트병', 0)}  캔:{stats.get('캔', 0)}  종이:{stats.get('종이', 0)}  종이팩:{stats.get('종이팩', 0)}  경고:{stats.get('이물질/경고', 0)}"
+    stats_str = f"[{model_name}] 총 {stats['total']}개 | 플라스틱:{stats.get('플라스틱/페트병', 0)}  캔:{stats.get('캔', 0)}  종이:{stats.get('종이', 0)}  종이팩:{stats.get('종이팩', 0)}  경고:{stats.get('이물질/경고', 0)}"
     cv2.rectangle(canvas, (0, 0), (w, 35), (20, 20, 20), -1)
     text_draw_list.append((stats_str, (10, 6), 13, (255, 255, 255)))
 
@@ -495,9 +515,11 @@ def initial_arrow_teach_session(hamster):
 def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: float, stats: dict):
     """
     💡 [유저 요구사항 100% 완벽 반영]
-    1. 연속 6프레임 분석 확정 ➔ 2. 집게 열고 4초간 제자리 대기 ➔ 3. 4초 후 집게 닫기 ➔ 4. 비로소 수거함 주행 시작 ➔ 5. 집게 열기 ➔ 6. 0.00cm 대칭 복귀
+    1. 연속 6프레임 분석 확정 ➔ 2. 집게 열고 4초간 제자리 대기 ➔ 3. 4초 후 집게 닫기 ➔ 4. 사전 저장 경로 자율주행 ➔ 5. 집게 열기 ➔ 6. 0.00cm 대칭 역주행 복귀
     """
-    waypoint_manager.log_event("SORTING_START", f"6프레임분석 4초대기 수거 시퀀스 시작: '{mapped_category}' (신뢰도: {conf:.2f})")
+    if not mapped_category or mapped_category in ["없음", "None", "Background", "대기"]:
+        print("  🛑 ['없음' 카테고리 감지] 주행 및 집게 동작을 수행하지 않고 대기합니다.")
+        return
 
     slot_map = {
         "종이": "1",
@@ -505,7 +527,11 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
         "플라스틱/페트병": "3",
         "캔": "4"
     }
-    slot_id = slot_map.get(mapped_category, "3" if "플라스틱" in mapped_category else "1")
+    slot_id = slot_map.get(mapped_category, None)
+
+    if slot_id is None and mapped_category != "이물질/경고":
+        print(f"  ⚠️ [{mapped_category}] 해당 카테고리의 수거함 슬롯이 없으므로 로봇 이동을 수행하지 않습니다.")
+        return
 
     def update_screen(status_msg: str, duration_sec: float):
         start = time.time()
@@ -540,7 +566,13 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
     status_hud.update_status(motion="4초 대기 완료! 집게 닫기 (CLOSE)")
     update_screen("4초 대기 완료! 집게 닫기 & 쓰레기 포획 (CLOSE)", 0.6)
 
-    # 4. 💡 집게를 닫은 후 비로소 지정된 수거함 슬롯(1~4번)으로 주행 시작!
+    # 4. 💡 모드 2(라인 트레이서) 분기 처리
+    if drive_mode == 2:
+        run_line_tracer_navigation(hamster, cam, mapped_category, slot_id, update_screen)
+        waypoint_manager.log_event("SORTING_COMPLETE", f"[모드2 라인트레이서] 분리배출 및 시작위치 복귀 완료: [{slot_id}번 {mapped_category}]")
+        return
+
+    # 5. 💡 모드 1(사전 저장 경로) 주행 시작!
     named_route = waypoint_manager.get_waypoint(mapped_category)
 
     if named_route:
@@ -563,13 +595,13 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
 
     hamster.stop()
 
-    # 5. 수거함 도착 완료 시 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입!
+    # 6. 수거함 도착 완료 시 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입!
     print(f"  🎉 [{slot_id}번 {mapped_category} 수거함 도착] 실물 집게 열기 (OPEN / RELEASE) 쓰레기 투입 완료!")
     control_physical_gripper(hamster, "open")
     status_hud.update_status(motion=f"[{mapped_category}] 수거함 도착! 집게 열기 (RELEASE)")
     update_screen("수거함 도착! 집게 열기 투입 완료 (OPEN)", 0.8)
 
-    # 6. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
+    # 7. 1:1 대칭 역주행으로 다시 시작하는 위치로 오차 0.00cm 완벽 복귀
     if named_route:
         print("  ↩️ 원본 대칭 역주행 궤적으로 시작 위치로 오차 0.00cm 복귀합니다...")
         status_hud.update_status(motion="↩️ 시작 위치로 대칭 정밀 역주행 복귀 중")
@@ -578,68 +610,24 @@ def operate_gripper_and_transport(hamster, cam, mapped_category: str, conf: floa
             hamster.wheels(step["left"], step["right"])
             update_screen(f"↩️ [정밀 역주행] 시작 위치 복귀 중 [{idx}/{len(reverse_route)}]", step["duration"])
 
-        hamster.stop()
-
-    # 7. 복귀 완료 후 다음 감지를 위해 집게를 항상 열린 상태(OPEN)로 준비
+    # 8. 복귀 완료 후 다음 감지를 위해 집게를 항상 열린 상태(OPEN)로 준비
     control_physical_gripper(hamster, "open")
     status_hud.update_status(motion="대기 중 (Standby - OPEN)")
     update_screen("시작 위치 복귀 완료! 다음 쓰레기 감지 대기 중 (OPEN)...", 0.5)
     waypoint_manager.log_event("SORTING_COMPLETE", f"분리배출 및 시작위치 복귀 완료: [{slot_id}번 {mapped_category}]")
 
 
-def open_camera():
-    print("[INFO] 웹캠 카메라를 연결하는 중...")
-    for target in [0, 1, 'usb0']:
-        try:
-            cam = ai.Camera(target, flip='h', square=True)
-            test_img = cam.read()
-            if test_img is not None:
-                print(f"[INFO] 카메라 연결 성공! (타겟: {target})")
-                return cam
-        except Exception:
-            pass
-
-    print("[ERROR] 웹캠 카메라를 열 수 없습니다! 카메라 연결을 확인해 주세요.")
-    return None
-
-
 def main():
-    global web_sort_trigger
-
-    waypoint_manager.log_event("SYSTEM_START", "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v8.1)")
-
-    # 📱 스마트폰 QR 스캔 모바일 리모컨 웹서버 가동!
-    web_url = start_qr_web_server(port=5000)
-
-    # 💡 [유저 편의] 바탕화면 더블클릭 바로가기 생성 & 크롬 브라우저 자동 오픈!
-    create_desktop_shortcut(web_url)
-    try:
-        webbrowser.open(web_url)
-    except Exception:
-        pass
-
-    print("[INFO] 사전 저장된 수거함 4종 경로를 불러옵니다...")
-    routes_summary = []
-    for s_id, s_name in NUMBERED_SLOTS.items():
-        wp = waypoint_manager.get_waypoint(s_id)
-        n_steps = len(wp) if wp else 0
-        routes_summary.append(f"슬롯[{s_id} {s_name}]: {n_steps}단계")
-    print(f"[INFO] 로드 완료 ➔ {', '.join(routes_summary)}")
-
-    print(f"[INFO] 모델을 불러오는 중... ({MODEL_DIR})")
-    tmi = ai.TmImage()
-    tmi.load_model(MODEL_DIR)
-    print("[INFO] 모델 로드 완료!")
-
-    stats = load_stats()
-    print(f"[INFO] 누적 분리배출 통계: {stats}")
-
+    """메인 스마트 분리배출 프로그램 진입점"""
     print("[INFO] 햄스터 봇에 연결 중...")
     hamster = Hamster()
     set_robot_led(hamster, ("off", "off"))
 
+    is_paused = False # 💡 스페이스바(Spacebar) 감지 일시정지/재개 플래그 (기본: 바로 감지 시작)
+
     # 웹 스마트폰 콜백 바인딩
     def handle_web_command(cmd_type: str, value: str):
+        nonlocal is_paused
         global web_sort_trigger
         if cmd_type == 'drive':
             speed = 35
@@ -657,6 +645,13 @@ def main():
             control_physical_gripper(hamster, value)
         elif cmd_type == 'sort':
             web_sort_trigger = value
+        elif cmd_type == 'pause':
+            is_paused = not is_paused
+            try:
+                hamster.beep()
+            except Exception:
+                pass
+            print(f"  📱 [스마트폰 웹] AI 감지 상태 변경: {'⏸️ 일시정지' if is_paused else '▶️ 재개'}")
 
     qr_server.robot_controller_callback = handle_web_command
 
@@ -679,15 +674,12 @@ def main():
 
     print("\n" + "=" * 65)
     print("  [📱 스마트폰 QR 스캔 모바일 리모컨 지원 AI 스마트 수거 시스템]")
+    print(f"  - 🧠 현재 선택된 AI 모델: [{selected_model_name}]")
     print(f"  - 📱 스마트폰 카메라 접속 URL: {web_url}")
-    print("  - 🌐 웹 브라우저 크롬 자동 접속 및 바탕화면 바로가기 생성 완료!")
+    print("  - ⌨️ [스페이스바]: AI 감지 일시정지(PAUSE) / 재개(RESUME) 토글")
     print("  - 🦾 초기 및 대기 상태: 실물 집게 열림(OPEN) 수거 대기 유지")
-    print("  - [1] 종이 ➔ 1번 수거함 이동")
-    print("  - [2] 종이팩 ➔ 2번 수거함 이동")
-    print("  - [3] 패트병(플라스틱) ➔ 3번 수거함 이동")
-    print("  - [4] 캔 ➔ 4번 수거함 이동")
-    print("  - 🤖 AI/웹 감지 시: 6프레임 분석 ➔ 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 닫기 ➔ 주행!")
-    print("  - ↩️ 정밀 물리 대칭 엔진: 배출 후 1:1 대칭 역주행으로 시작 위치 오차 0.00cm 완벽 복귀!")
+    print("  - [1] 종이 ➔ 1번 수거함 | [2] 종이팩 ➔ 2번 | [3] 플라스틱 ➔ 3번 | [4] 캔 ➔ 4번")
+    print("  - 🤖 AI/웹 감지 시: 6프레임 분석 ➔ 집게 열기(OPEN) ➔ 4초 대기 ➔ 집게 오무리기(CLOSE) ➔ 수거함 주행!")
     print("  * 종료하려면 화면 창에서 ESC를 누르세요.")
     print("=" * 65 + "\n")
 
@@ -696,6 +688,29 @@ def main():
 
     try:
         while True:
+            # ⌨️ 스페이스바 및 ESC 처리
+            key_val = cam.check_key()
+            if key_val == "space":
+                is_paused = not is_paused
+                try:
+                    hamster.beep()
+                except Exception:
+                    pass
+                print(f"\n  [⌨️ 스페이스바] {'⏸️ AI 감지 일시정지' if is_paused else '▶️ AI 감지 재개'}")
+            elif key_val == "esc":
+                break
+
+            if is_paused:
+                current_target = None
+                consecutive_count = 0
+                image = cam.read()
+                if image is not None:
+                    image = draw_hud_and_bbox(image, "없음", 0.0, 0, REQUIRED_FRAMES, stats, gripper_status="⏸️ 일시정지 (스페이스바 누름)", is_paused=True, model_name=selected_model_name)
+                    update_web_frame(image)
+                    display_image = overlay_qr_code_on_frame(image, web_url)
+                    cam.show(display_image)
+                continue
+
             # 📱 스마트폰 웹 원터치 분리배출 요청 처리
             if web_sort_trigger is not None:
                 cat_to_sort = web_sort_trigger
@@ -729,7 +744,7 @@ def main():
                     current_target = mapped_category
                     consecutive_count = 1
 
-                image = draw_hud_and_bbox(image, mapped_category, conf, consecutive_count, REQUIRED_FRAMES, stats)
+                image = draw_hud_and_bbox(image, mapped_category, conf, consecutive_count, REQUIRED_FRAMES, stats, is_paused=False, model_name=selected_model_name)
 
                 # 💡 쓰레기를 연속 6프레임 동안 정밀 분석하여 신뢰 확보 시 집게열기 & 4초대기 후 주행!
                 if consecutive_count >= REQUIRED_FRAMES:
@@ -751,12 +766,13 @@ def main():
                     set_robot_led(hamster, ("off", "off"))
                     current_target = None
                     consecutive_count = 0
+                    print("  🎉 시작 위치 정밀 복귀 완료! 다음 쓰레기 감지 대기 중... (일시정지 필요 시 [스페이스바] 클릭)\n")
 
             else:
                 current_target = None
                 consecutive_count = 0
                 set_robot_led(hamster, ("off", "off"))
-                image = draw_hud_and_bbox(image, "없음", conf, 0, REQUIRED_FRAMES, stats)
+                image = draw_hud_and_bbox(image, "없음", conf, 0, REQUIRED_FRAMES, stats, is_paused=False, model_name=selected_model_name)
 
             # 웹 스트리밍으로 최신 프레임 업데이트
             update_web_frame(image)
@@ -765,9 +781,6 @@ def main():
             if image is not None:
                 display_image = overlay_qr_code_on_frame(image, web_url)
                 cam.show(display_image)
-
-            if cam.check_key() == "esc":
-                break
 
     finally:
         waypoint_manager.log_event("SYSTEM_START", "프로그램 정상 종료")
