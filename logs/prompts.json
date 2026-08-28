@@ -1,83 +1,5 @@
 [
   {
-    "timestamp": "2026-08-26 22:54:21",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:54:22",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225422_캔.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:54:31",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:55:21",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:55:22",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225522_캔.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:55:31",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:56:21",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:56:23",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225623_캔.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:56:31",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:57:21",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:57:23",
-    "event_type": "CAPTURE_SAVED",
-    "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225723_캔.jpg",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:57:31",
-    "event_type": "AUTONOMOUS_NAV",
-    "message": "슬롯 [4] '캔' 지정 경로 자율주행 시작 (6단계)",
-    "extra": {}
-  },
-  {
-    "timestamp": "2026-08-26 22:58:22",
-    "event_type": "SORTING_COMPLETE",
-    "message": "분리배출 및 시작위치 복귀 완료: [4번 캔]",
-    "extra": {}
-  },
-  {
     "timestamp": "2026-08-26 22:58:24",
     "event_type": "CAPTURE_SAVED",
     "message": "이미지 자동 캡처 파티셔닝 저장: 20260826_225824_캔.jpg",
@@ -617,6 +539,84 @@
   },
   {
     "timestamp": "2026-08-28 15:49:33",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:01:09",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v9.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:03:18",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v9.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:06:29",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_170629_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:06:37",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:07:04",
+    "event_type": "SORTING_COMPLETE",
+    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:07:05",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_170705_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:07:13",
+    "event_type": "AUTONOMOUS_NAV",
+    "message": "슬롯 [1] '종이' 지정 경로 자율주행 시작 (5단계)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:07:40",
+    "event_type": "SORTING_COMPLETE",
+    "message": "분리배출 및 시작위치 복귀 완료: [1번 종이]",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:07:41",
+    "event_type": "CAPTURE_SAVED",
+    "message": "이미지 자동 캡처 파티셔닝 저장: 20260828_170741_종이.jpg",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:07:42",
+    "event_type": "SYSTEM_STOP",
+    "message": "프로그램 정상 종료",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:36:10",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v9.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:36:18",
+    "event_type": "SYSTEM_START",
+    "message": "스마트폰 QR 모바일 리모컨 탑재 AI 분리배출 햄스터봇 (v9.0)",
+    "extra": {}
+  },
+  {
+    "timestamp": "2026-08-28 17:41:10",
     "event_type": "SYSTEM_STOP",
     "message": "프로그램 정상 종료",
     "extra": {}

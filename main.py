@@ -845,11 +845,24 @@ def main():
     else:
         selected_model_name = "모델1"
 
-    target_model_dir = os.path.join(MODEL_DIR, selected_model_name)
-    cur_model_path = os.path.join(target_model_dir, "keras_model.h5")
-    cur_labels_path = os.path.join(target_model_dir, "labels.txt")
+    search_dirs = [
+        os.path.join(MODEL_DIR, selected_model_name),
+        os.path.join(str(PROJECT_ROOT), "hamster", "models", selected_model_name),
+        MODEL_DIR,
+        os.path.join(str(PROJECT_ROOT), "hamster", "models")
+    ]
 
-    if not os.path.exists(cur_model_path):
+    cur_model_path = None
+    cur_labels_path = None
+    for d in search_dirs:
+        m_h5 = os.path.join(d, "keras_model.h5")
+        m_lbl = os.path.join(d, "labels.txt")
+        if os.path.exists(m_h5) and os.path.exists(m_lbl):
+            cur_model_path = m_h5
+            cur_labels_path = m_lbl
+            break
+
+    if not cur_model_path:
         cur_model_path = MODEL_PATH
         cur_labels_path = LABELS_PATH
 
